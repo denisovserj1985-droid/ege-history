@@ -629,7 +629,7 @@ function render(){
     if(!answered)opts=distract(cur);
     h+='<div class="opts">'+opts.map((o,i)=>{let cls='',mk='';if(answered){if(o===cur){cls='okc';mk='✓ Правильный ответ'}else if(o===answered){cls='noc';mk='✗ Ваш ответ'}}
       return '<button data-o="'+i+'" class="'+cls+(()=>{const m=Math.max(...opts.map(x=>optTxt(x).length));return m<=6?' big':m<=10?' mid':m<=16?' lng':''})()+'"><i>'+(i+1)+'</i><span>'+(mk?'<span class="mark">'+mk+'</span>':'')+esc(optTxt(o)).replace(/[–-]/g,'\u2060–\u2060')+'</span></button>'}).join('')+'</div>';
-    if(answered){h+='<div class="fb '+(answered===cur?'ok">✓ Верно':'no">✗ Неверно')+'</div>';if(cur.expl&&!S.rev)h+='<div class="ans long"><small>Объяснение</small>'+esc(cur.expl)+'</div>'}
+    if(answered){h+='<div class="fb '+(answered===cur?'ok">✓ Правильно':'no">✗ Ошибка')+'</div>';if(cur.expl&&!S.rev)h+='<div class="ans long"><small>Объяснение</small>'+esc(cur.expl)+'</div>'}
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+(answered?'':btn('mic','bMic','Сказать номер',MIC))+'</div><div class="heard" id="heard"></div>';
     h+='<div class="dock"><div class="row">'+(answered?btn('pri','bNext','Дальше'):'')+'</div></div>';
   }else{
