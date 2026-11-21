@@ -53,7 +53,7 @@ button:active{transform:translateY(1px)}
 @media(max-width:600px){.brand{display:none}.top{justify-content:flex-end}}
 .card{border:2px solid var(--line);border-radius:1rem;padding:1rem 1.1rem 0;margin-top:.5rem}
 .lab{color:var(--mute);font-size:.8rem}
-.q{font-weight:800;font-size:1.6rem;line-height:calc(var(--lh) - .1);margin:.45rem 0 .8rem;overflow-wrap:anywhere}
+.q{font-weight:800;font-size:1.6rem;line-height:calc(var(--lh) - .1);margin:.45rem 0 .8rem;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
 .q.long{font-size:1.25rem;font-weight:700}
 .q ul{margin:.3rem 0;padding-left:1.2em;font-weight:600;font-size:.8em}
 .q .mk{display:block}
@@ -75,7 +75,7 @@ body.neg .map,body.neg #zoomv img{filter:invert(1);background:#fff}
 #zoomv .zbar button{flex:1 1 0;min-width:0;min-height:3rem;font-size:1.1rem;padding:0 .3rem;font-weight:800;background:#000;color:#fff;border:2px solid #fff;border-radius:.7rem}
 #zoomv .zbox{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
 #zoomv img{display:block;background:#fff;max-width:none}
-.ans{font-size:1.4rem;font-weight:700;border-top:3px dashed var(--line);padding-top:.6rem;margin-top:.4rem;overflow-wrap:anywhere}
+.ans{font-size:1.4rem;font-weight:700;border-top:3px dashed var(--line);padding-top:.6rem;margin-top:.4rem;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
 .ans.long{font-size:1.1rem;font-weight:600}
 .ans small,.sub{display:block;font-size:.75rem;color:var(--mute);font-weight:600}
 .ex{display:block;font-size:.75em;font-weight:500;margin-top:.45rem}
@@ -95,7 +95,7 @@ body.neg .map,body.neg #zoomv img{filter:invert(1);background:#fff}
 .okc{border:4px solid var(--good)!important}.noc{border:4px solid var(--bad)!important}
 .okc .mark{color:var(--good)}.noc .mark{color:var(--bad)}
 .opts{display:grid;gap:.75rem;margin-top:.6rem}
-.opts button,.ch button,.mt button{text-align:left;font-size:1.05rem;min-height:3rem;display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .8rem;overflow-wrap:anywhere}
+.opts button,.ch button,.mt button{text-align:left;font-size:1.05rem;min-height:3rem;display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .8rem;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
 .opts i,.mt i{font-style:normal;font-weight:800;color:var(--gold);flex:none;min-width:1.1em}
 .opts button.big,.opts button.mid,.opts button.lng{font-weight:800;min-height:4.2rem;align-items:center}
 .opts button.big{font-size:min(2.3rem,11vw)}
@@ -286,6 +286,9 @@ for(const s of SECS){
 }
 function rebuildMix(){ITEMS.mix=SECS.filter(s=>s.id!=='mix'&&!s.ref).flatMap(s=>ITEMS[s.id])}
 rebuildMix();
+// Шпаргалка по обществознанию: soc.json, разделы добавляются сами
+function loadSoc(d){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:'s'};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r});ITEMS[x.id]=x.items.map(([k,v,e],i)=>({id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null}))}rebuildMix()}
+loadSoc(store.get('ege_soc',null));
 
 /* ---------- состояние ---------- */
 let S=Object.assign({sec:'reign',per:'all',mode:'cards',rev:false,font:24,theme:'bw',lh:1.4,ls:0,ff:'golos',grades:4,goal:30,pause:3,rate:1,auto:false,unmute:true,voice:'',onlyBad:false},store.get('ege_s',{}));
@@ -508,7 +511,7 @@ const GN={1:'Забыл',2:'Трудно',3:'Хорошо',4:'Легко'};
 
 /* ---------- тест: варианты ---------- */
 function distract(item){
-  const all=(ITEMS[item.sec]||ITEMS[S.sec]).filter(i=>A(i)!==A(item));
+  const all=(ITEMS[item.sec]||ITEMS[S.sec]).filter(i=>A(i)!==A(item)&&Q(i)!==Q(item));
   const sy=secOf(item).yrs;
   let cand=(!S.rev&&item.year!==null&&sy)?all.filter(i=>i.year!==null).sort((x,y)=>Math.abs(x.year-item.year)-Math.abs(y.year-item.year)).slice(0,item.sec==='reign'?8:14):all.slice();
   const out=[],seen=new Set([A(item)]);
@@ -738,16 +741,16 @@ function renderList(){
   st.innerHTML='<div class="card"><input type="search" id="srch" aria-label="Поиск" placeholder="Поиск: слово, имя или год" value="'+esc(prev)+'"><div id="lres" class="list"></div></div>';
   const draw=()=>{
     const q=norm($('#srch').value);const all=pool();const num=new Map(all.map((x,k)=>[x.id,k+1]));const a=all.filter(i=>!q||norm(i.key+' '+i.val).includes(q));
-    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?', показаны первые 150':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:')||i.how;return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(m?i.key:i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
-    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.id.startsWith('m:')||i.how?i.val+' '+i.key:i.key+'. '+i.val)});
+    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?', показаны первые 150':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:')||i.how||i.sec.startsWith('s_');return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(m?i.key:i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
+    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.id.startsWith('m:')||i.how||i.sec.startsWith('s_')?i.val+' '+i.key:i.key+'. '+i.val)});
   };
   $('#srch').oninput=draw;draw();
 }
 function renderChips(){
   navSummary();
   const nM=['m_rus','m_hist','m_soc'].reduce((a,k)=>a+ITEMS[k].length,0),g=GRP(sec());
-  $('#grp').innerHTML=[['h','Шпаргалка по истории',''],['m','Мои ошибки',nM],['x','Всё вперемешку','']].map(([k,n,c])=>'<button data-gr="'+k+'"'+(g===k?' class="on"':'')+'>'+n+(c!==''?'<span class="n">'+c+'</span>':'')+'</button>').join('');
-  document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const k=b.dataset.gr;if(g===k)return;S.sec=k==='m'?(['m_rus','m_hist','m_soc'].find(x=>ITEMS[x].length)||'m_rus'):k==='x'?'mix':'reign';S.per='all';recent=[];hf=false;saveS();next()});
+  $('#grp').innerHTML=[['h','Шпаргалка по истории',''],...(SECS.some(s=>s.grp==='s')?[['s','Шпаргалка по обществознанию','']]:[]),['m','Мои ошибки',nM],['x','Всё вперемешку','']].map(([k,n,c])=>'<button data-gr="'+k+'"'+(g===k?' class="on"':'')+'>'+n+(c!==''?'<span class="n">'+c+'</span>':'')+'</button>').join('');
+  document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const k=b.dataset.gr;if(g===k)return;S.sec=k==='m'?(['m_rus','m_hist','m_soc'].find(x=>ITEMS[x].length)||'m_rus'):k==='x'?'mix':k==='s'?SECS.find(s=>s.grp==='s').id:'reign';S.per='all';recent=[];hf=false;saveS();next()});
   $('#secs').innerHTML=g==='x'?'':SECS.filter(s=>GRP(s)===g).map(s=>'<button data-s="'+s.id+'"'+(s.id===S.sec?' class="on"':'')+'>'+s.name+'<span class="n">'+ITEMS[s.id].length+'</span></button>').join('');
   $('#persBox').hidden=!sec().yrs;$('#secsBox').hidden=g==='x';
   $('#pers').innerHTML=sec().yrs?'<select id="perSel" aria-label="Период">'+PERIODS.map(p=>'<option value="'+p[0]+'"'+(p[0]===S.per?' selected':'')+'>'+(p[0]==='all'?'Все периоды':p[1])+'</option>').join('')+'</select>':'';
@@ -814,6 +817,7 @@ document.addEventListener('keydown',e=>{
 
 applyLook();
 if(S.mode==='chrono'||S.mode==='match')next();else{cur=pick();render()}
+fetch('soc.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(!d)return;const fresh=JSON.stringify(d)!==JSON.stringify(store.get('ege_soc',null));store.set('ege_soc',d);loadSoc(d);if(fresh&&GRP(sec())==='s')next();else renderChips()}).catch(()=>{});
 fetch('mistakes.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;const fresh=JSON.stringify(m)!==JSON.stringify(M);loadM(m);store.set('ege_m',m);if(fresh&&GRP(sec())!=='h')next();else renderChips()}).catch(()=>{});
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&location.hostname.endsWith('github.io'))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 }
