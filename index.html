@@ -332,9 +332,11 @@ function distract(item){
 function head(){return '<div class="lab"><span>'+esc(label())+'</span><span><b>'+boxName(cur)+'</b> · '+esc(sec().name)+'</span></div>'}
 function btn(cls,id,txt,ic){return '<button class="'+cls+(ic?' icon':'')+'" id="'+id+'">'+(ic||'')+txt+'</button>'}
 function next(){stopSay();revealed=false;answered=false;
-  if(S.mode==='chrono'){newChrono();render();return}
-  if(S.mode==='match'){newMatch();render();return}
-  cur=pick();render();if(cur&&S.auto&&S.mode!=='list'&&!hf)say(label()+' '+Q(cur))}
+  if(S.mode==='chrono'){newChrono();render();if(CH&&S.auto)say('Расставьте по порядку. '+CH.items.map((it,i)=>(i+1)+'. '+chText(it)).join('. '));return}
+  if(S.mode==='match'){newMatch();render();if(MT&&S.auto)say(mtText());return}
+  cur=pick();render();if(cur&&S.auto&&S.mode!=='list'&&!hf)say(qText())}
+function optText(){return opts.map((o,i)=>'Вариант '+(i+1)+': '+A(o)).join('. ')}
+function qText(){return label()+' '+Q(cur)+(S.mode==='test'&&opts.length?'. '+optText():'')}
 /* ---------- хронология ---------- */
 let CH=null,MT=null;
 function sample(a,n,key){const c=a.slice(),o=[],seen=new Set();while(o.length<n&&c.length){const x=c.splice(Math.floor(Math.random()*c.length),1)[0];const k=key(x);if(!seen.has(k)){seen.add(k);o.push(x)}}return o}
@@ -392,9 +394,10 @@ function renderMatch(){
   h+='</div></div>';
   if(MT.done){const right=MT.q.map(it=>MT.ans.indexOf(it)+1).join('');const ok=MT.q.every((it,i)=>MT.ans[MT.map[i]]===it);h+='<div class="fb '+(ok?'ok">Верно! Ответ: ':'no">Есть ошибки. Правильный ответ: ')+right+'</div>'}
   const full=Object.keys(MT.map).length===MT.q.length;
-  h+='<div class="row">'+(MT.done?btn('pri','bNext','Дальше'):btn(full?'pri':'','bMtCheck','Проверить'))+'</div></div>';
+  h+='<div class="row">'+btn('','bMtSay','Прочитать',SPK)+(MT.done?btn('pri','bNext','Дальше'):btn(full?'pri':'','bMtCheck','Проверить'))+'</div></div>';
   return h;
 }
+function mtText(){return 'Установите соответствие. '+MT.q.map((it,i)=>LET[i]+': '+Q(it)).join('. ')+'. Варианты: '+MT.ans.map((it,i)=>(i+1)+': '+A(it)).join('. ')}
 function mtQ(i){if(MT.done)return;MT.sel=MT.sel===i?null:i;render()}
 function mtA(a){
   if(MT.done)return;
@@ -437,7 +440,7 @@ function render(){
 }
 function bind(){
   const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f};
-  on('bSay',()=>say(revealed||answered?label()+' '+Q(cur)+'. Ответ: '+A(cur):label()+' '+Q(cur)));
+  on('bSay',()=>say(revealed||(answered&&S.mode!=='test')?label()+' '+Q(cur)+'. Ответ: '+A(cur):qText()));
   on('bShow',reveal);
   on('bGood',()=>{grade(true);next()});
   on('bBad',()=>{grade(false);next()});
@@ -457,6 +460,7 @@ function bind(){
   document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>mtQ(+b.dataset.q));
   document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>mtA(+b.dataset.a));
   on('bMtCheck',mtCheck);
+  on('bMtSay',()=>say(mtText()));
   on('toDates',()=>{S.sec='dates';S.per='all';saveS();next()});
   on('bChUndo',()=>{if(CH&&CH.pick.length){CH.pick.pop();render()}});
   on('bChSay',()=>say('Расставьте по порядку. '+CH.items.map((it,i)=>(i+1)+'. '+chText(it)).join('. ')));
@@ -492,7 +496,7 @@ function command(t,soft){
   if(/(^|\s)стоп|хватит|останов/.test(s)){hf=false;stopSay();render();return true}
   if(/крупн|больше шрифт|увелич/.test(s)){font(4);return true}
   if(/мельч|меньше шрифт|уменьш/.test(s)){font(-4);return true}
-  if(/повтор|прочитай|ещ[её] раз/.test(s)){say(label()+' '+Q(cur));return true}
+  if(/повтор|прочитай|ещ[её] раз/.test(s)){say(qText());return true}
   if(soft)return false;
   if(/не помню|не знаю|(^|\s)нет($|\s)/.test(s)){if(!revealed){revealed=true}grade(false);next();return true}
   if(/помню|знаю|^да($|\s)/.test(s)){grade(true);next();return true}
