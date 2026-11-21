@@ -1,4 +1,4 @@
-const C='ege-v24';
+const C='ege-v25';
 const MC='ege-maps-2'; // карты: отдельный кэш, не стирается при обновлении сайта
 const FILES=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./mistakes.json','./soc.json'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(FILES)))});
