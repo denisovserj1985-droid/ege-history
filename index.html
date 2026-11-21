@@ -182,6 +182,7 @@ const SECS=[
  {id:'persons',name:'Личности',src:D.persons,q:'Кто это?',r:'Чем известен?'},
  {id:'terms',name:'Термины',src:D.terms,q:'Что это за термин?',r:'Что означает термин?'},
  {id:'maps',name:'Карты',q:'Какая это карта?',r:'Как узнать эту карту?'},
+ {id:'mapsHow',name:'Как узнать карту',q:'Как узнать эту карту?',r:'Какая это карта?'},
  {id:'m_rus',name:'Русский',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
  {id:'m_hist',name:'История',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
  {id:'m_soc',name:'Обществознание',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'}];
@@ -191,7 +192,7 @@ const PERIODS=[['all','Все',-1,9999],['p1','IX–XII вв.',0,1240],['p2','XI
 const ITEMS={};
 const MAP_NO=[0,39]; // в «Мегашпоре» нет карт для «Славянских племён» и «Отечественной войны 1812 г.»
 const mapImg=src=>'<div class="mapw"><img src="'+src+'" alt="Карта" class="map" loading="lazy"><button type="button" class="zoom" data-zoom="'+src+'">Увеличить</button></div>';
-const isMapQ=i=>!!(i&&i.img&&!S.rev);
+const isMapQ=i=>!!(i&&i.img&&!i.how&&!S.rev);
 for(const s of SECS){
   if(s.grp==='m'){ITEMS[s.id]=[];continue}
   if(s.id==='maps'){
@@ -202,6 +203,12 @@ for(const s of SECS){
       if(ex.length){parts.push(ex.join('. '));html+='<ul>'+ex.map(h=>'<li>'+esc(h)+'</li>').join('')+'</ul>'}
       const y=(m.title.match(/\d{3,4}/)||[])[0];
       return {id:'maps:'+i,key:m.title,val:parts.join('. '),valHtml:html,year:y?+y:null,img:MAP_NO.includes(i)?'':'maps/'+String(i).padStart(2,'0')+'.jpg'};
+    });
+  }else if(s.id==='mapsHow'){
+    ITEMS.mapsHow=D.maps.map((m,i)=>{
+      const pts=m.hints.length?m.hints:m.notes;
+      const y=(m.title.match(/\d{3,4}/)||[])[0];
+      return {id:'mapsHow:'+i,key:pts.map((h,k)=>(k+1)+') '+h.replace(/[.;]\s*$/,'')).join('; ')+'.',val:m.title,year:y?+y:null,how:1,img:MAP_NO.includes(i)?'':'maps/'+String(i).padStart(2,'0')+'.jpg'};
     });
   }else{
     ITEMS[s.id]=s.src.map(([k,v],i)=>{const y=(k.match(/\d{3,4}/)||[])[0];return {id:s.id+':'+i,key:k,val:v,year:y?+y:null}});
@@ -340,7 +347,7 @@ function grade(good){
   recent.push(cur.id);if(recent.length>4)recent.shift();
 }
 const Q=i=>S.rev?i.key:i.val, A=i=>S.rev?i.val:i.key;
-const QH=i=>isMapQ(i)?mapImg(i.img):S.rev?esc(i.key):(i.valHtml||esc(i.val));
+const QH=i=>i.how&&!S.rev?esc(i.val)+(i.img?mapImg(i.img):''):isMapQ(i)?mapImg(i.img):S.rev?esc(i.key):(i.valHtml||esc(i.val));
 const label=()=>S.rev?sec().r:sec().q;
 const ansH=i=>isMapQ(i)?esc(i.key)+'<div class="mapwhy">'+i.valHtml+'</div>':i.img&&S.rev?'<div class="mapwhy">'+i.valHtml+'</div>'+mapImg(i.img):esc(A(i)).replace(/;\s*(\d+\))/g,';<br>$1')+(!S.rev&&i.expl?'<span class="ex">Почему: '+esc(i.expl)+'</span>':'');
 const ansS=i=>isMapQ(i)?i.key+'. '+i.val:A(i)+(!S.rev&&i.expl?'. '+i.expl:'');
@@ -570,8 +577,8 @@ function renderList(){
   st.innerHTML='<div class="card"><input type="search" id="srch" placeholder="Поиск: слово, имя или год" value="'+esc(prev)+'"><div id="lres" class="list"></div></div>';
   const draw=()=>{
     const q=norm($('#srch').value);const all=pool();const num=new Map(all.map((x,k)=>[x.id,k+1]));const a=all.filter(i=>!q||norm(i.key+' '+i.val).includes(q));
-    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?' (показаны первые 150)':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:');return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
-    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.id.startsWith('m:')?i.val+' '+i.key:i.key+'. '+i.val)});
+    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?' (показаны первые 150)':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:')||i.how;return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(m?i.key:i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
+    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.id.startsWith('m:')||i.how?i.val+' '+i.key:i.key+'. '+i.val)});
   };
   $('#srch').oninput=draw;draw();
 }
