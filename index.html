@@ -56,6 +56,15 @@ button:active{transform:translateY(1px)}
 .lab{color:var(--mute);font-size:.8rem;display:flex;flex-wrap:wrap;gap:.3rem 1rem;justify-content:space-between}
 .lab b{color:var(--gold)}
 .q{font-weight:800;font-size:1.6rem;line-height:1.2;margin:.5rem 0 .7rem;letter-spacing:-.01em;overflow-wrap:anywhere}
+.mapw{display:block;position:relative;margin:.4rem 0}
+.map{display:block;width:100%;height:auto;background:#fff;border-radius:.6rem;border:2px solid var(--line)}
+.zoom{display:block;width:fit-content;margin:.4rem 0 0 auto;font-size:1rem;font-weight:800;padding:.35rem .7rem;min-height:0;border-radius:.6rem;background:#000;color:#fff;border:2px solid #fff;cursor:pointer}
+.mapwhy{font-size:.8em;font-weight:600;color:var(--ink)}.mapwhy ul{margin:.3rem 0;padding-left:1.2em}.mapwhy .mk{display:block}
+#zoomv{position:fixed;inset:0;z-index:99;background:#000;display:flex;flex-direction:column}
+#zoomv .zbar{display:flex;gap:.5rem;padding:.5rem;padding-top:max(.5rem,env(safe-area-inset-top))}
+#zoomv .zbar button{flex:1 1 0;min-width:0;min-height:3rem;font-size:1.1rem;padding:0 .3rem;font-weight:800;background:#000;color:#fff;border:2px solid #fff;border-radius:.7rem}
+#zoomv .zbox{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+#zoomv img{display:block;background:#fff;max-width:none}
 .q ul{margin:.3rem 0;padding-left:1.2em;font-weight:600;font-size:.8em}
 .q .mk{display:block}
 .ans{font-size:1.45rem;font-weight:800;color:var(--pri);border-top:3px dashed var(--line);padding-top:.6rem;margin-top:.4rem;overflow-wrap:anywhere}
@@ -180,6 +189,9 @@ const GRP=s=>s.grp||'h';
 const PERIODS=[['all','Все',-1,9999],['p1','IX–XII вв.',0,1240],['p2','XIII–XV вв.',1240,1505],['p3','XVI–XVII вв.',1505,1689],['p4','XVIII в.',1689,1801],['p5','XIX в. – 1917',1801,1917],['p6','1917–1945',1917,1946],['p7','1946–1991',1946,1992],['p8','с 1992',1992,9999]];
 
 const ITEMS={};
+const MAP_NO=[0,39]; // в «Мегашпоре» нет карт для «Славянских племён» и «Отечественной войны 1812 г.»
+const mapImg=src=>'<div class="mapw"><img src="'+src+'" alt="Карта" class="map" loading="lazy"><button type="button" class="zoom" data-zoom="'+src+'">Увеличить</button></div>';
+const isMapQ=i=>!!(i&&i.img&&!S.rev);
 for(const s of SECS){
   if(s.grp==='m'){ITEMS[s.id]=[];continue}
   if(s.id==='maps'){
@@ -189,7 +201,7 @@ for(const s of SECS){
       const ex=m.hints.concat(m.notes);
       if(ex.length){parts.push(ex.join('. '));html+='<ul>'+ex.map(h=>'<li>'+esc(h)+'</li>').join('')+'</ul>'}
       const y=(m.title.match(/\d{3,4}/)||[])[0];
-      return {id:'maps:'+i,key:m.title,val:parts.join('. '),valHtml:html,year:y?+y:null};
+      return {id:'maps:'+i,key:m.title,val:parts.join('. '),valHtml:html,year:y?+y:null,img:MAP_NO.includes(i)?'':'maps/'+String(i).padStart(2,'0')+'.jpg'};
     });
   }else{
     ITEMS[s.id]=s.src.map(([k,v],i)=>{const y=(k.match(/\d{3,4}/)||[])[0];return {id:s.id+':'+i,key:k,val:v,year:y?+y:null}});
@@ -328,10 +340,10 @@ function grade(good){
   recent.push(cur.id);if(recent.length>4)recent.shift();
 }
 const Q=i=>S.rev?i.key:i.val, A=i=>S.rev?i.val:i.key;
-const QH=i=>S.rev?esc(i.key):(i.valHtml||esc(i.val));
+const QH=i=>isMapQ(i)?mapImg(i.img):S.rev?esc(i.key):(i.valHtml||esc(i.val));
 const label=()=>S.rev?sec().r:sec().q;
-const ansH=i=>esc(A(i)).replace(/;\s*(\d+\))/g,';<br>$1')+(!S.rev&&i.expl?'<span class="ex">Почему: '+esc(i.expl)+'</span>':'');
-const ansS=i=>A(i)+(!S.rev&&i.expl?'. '+i.expl:'');
+const ansH=i=>isMapQ(i)?esc(i.key)+'<div class="mapwhy">'+i.valHtml+'</div>':i.img&&S.rev?'<div class="mapwhy">'+i.valHtml+'</div>'+mapImg(i.img):esc(A(i)).replace(/;\s*(\d+\))/g,';<br>$1')+(!S.rev&&i.expl?'<span class="ex">Почему: '+esc(i.expl)+'</span>':'');
+const ansS=i=>isMapQ(i)?i.key+'. '+i.val:A(i)+(!S.rev&&i.expl?'. '+i.expl:'');
 function boxName(i){const r=P[i.id];if(!r)return 'новое';return ['учим','учим','почти','выучено','выучено','выучено','выучено'][r.b]}
 
 /* ---------- distractors for test ---------- */
@@ -354,7 +366,7 @@ function next(){stopSay();revealed=false;answered=false;
   if(S.mode==='match'){newMatch();render();if(MT&&S.auto)say(mtText());return}
   cur=pick();render();if(cur&&S.auto&&S.mode!=='list'&&!hf)say(qText())}
 function optText(){return opts.map((o,i)=>'Вариант '+(i+1)+': '+A(o)).join('. ')}
-function qText(){return label()+' '+Q(cur)+(S.mode==='test'&&opts.length?'. '+optText():'')}
+function qText(){return label()+(isMapQ(cur)?'':' '+Q(cur))+(S.mode==='test'&&opts.length?'. '+optText():'')}
 /* ---------- хронология ---------- */
 let CH=null,MT=null;
 function sample(a,n,key){const c=a.slice(),o=[],seen=new Set();while(o.length<n&&c.length){const x=c.splice(Math.floor(Math.random()*c.length),1)[0];const k=key(x);if(!seen.has(k)){seen.add(k);o.push(x)}}return o}
@@ -435,7 +447,7 @@ function render(){
   if(S.mode==='chrono'){st.innerHTML=renderChrono();bind();return}
   if(S.mode==='match'){st.innerHTML=renderMatch();bind();return}
   if(!cur){st.innerHTML='<div class="card"><p class="q" style="font-size:1.2rem">'+(S.onlyBad?'Ошибок в этом разделе нет. Отлично!':GRP(sec())==='m'?'По этому предмету ошибок пока нет. Они появятся здесь, как только папа пришлёт скриншоты.':'Здесь пока ничего нет.')+'</p></div>';return}
-  let h='<div class="card">'+head()+'<div class="q'+(Q(cur).length>90?' long':'')+'">'+QH(cur)+'</div>';
+  let h='<div class="card">'+head()+'<div class="q'+(Q(cur).length>90&&!isMapQ(cur)?' long':'')+'">'+QH(cur)+'</div>';
   if(S.mode==='cards'){
     if(revealed)h+='<div class="ans'+(A(cur).length>70?' long':'')+'"><small>Ответ</small>'+ansH(cur)+'</div>';
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+btn('mic','bMic','Команда',MIC)+'</div>';
@@ -491,6 +503,20 @@ function bind(){
     const q=card.querySelector('.q');if(q&&!revealed){q.style.cursor='pointer';q.onclick=reveal}
   }
 }
+let zs=1;
+function openZoom(src){
+  let v=document.getElementById('zoomv');if(v)v.remove();
+  v=document.createElement('div');v.id='zoomv';
+  v.innerHTML='<div class="zbar"><button id="zMinus">−</button><button id="zPlus">+</button><button id="zClose" aria-label="Закрыть">✕</button></div><div class="zbox"><img src="'+src+'" alt="Карта"></div>';
+  document.body.appendChild(v);zs=1;const im=v.querySelector('img');const box=v.querySelector('.zbox');
+  const set=k=>{const cx=(box.scrollLeft+box.clientWidth/2)/im.offsetWidth,cy=(box.scrollTop+box.clientHeight/2)/im.offsetHeight;zs=Math.min(4,Math.max(1,k));im.style.width=(box.clientWidth*zs)+'px';box.scrollLeft=cx*im.offsetWidth-box.clientWidth/2;box.scrollTop=cy*im.offsetHeight-box.clientHeight/2};
+  set(1);
+  v.querySelector('#zPlus').onclick=()=>set(zs*1.5);
+  v.querySelector('#zMinus').onclick=()=>set(zs/1.5);
+  v.querySelector('#zClose').onclick=()=>v.remove();
+  im.ondblclick=()=>set(zs>=3.9?1:zs*2);
+}
+document.addEventListener('click',e=>{const z=e.target.closest&&e.target.closest('[data-zoom]');if(z){e.preventDefault();e.stopPropagation();openZoom(z.dataset.zoom)}},true);
 function reveal(){revealed=true;render();sayAuto('Ответ: '+ansS(cur))}
 function choose(i){
   if(answered)return;const o=opts[i];answered=o;grade(o===cur);render();
@@ -544,7 +570,7 @@ function renderList(){
   st.innerHTML='<div class="card"><input type="search" id="srch" placeholder="Поиск: слово, имя или год" value="'+esc(prev)+'"><div id="lres" class="list"></div></div>';
   const draw=()=>{
     const q=norm($('#srch').value);const all=pool();const num=new Map(all.map((x,k)=>[x.id,k+1]));const a=all.filter(i=>!q||norm(i.key+' '+i.val).includes(q));
-    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?' (показаны первые 150)':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:');return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b> — '+esc(m?i.key:i.val)+'</button>'}).join('');
+    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?' (показаны первые 150)':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:');return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
     document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.id.startsWith('m:')?i.val+' '+i.key:i.key+'. '+i.val)});
   };
   $('#srch').oninput=draw;draw();
