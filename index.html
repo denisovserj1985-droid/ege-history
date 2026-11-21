@@ -43,7 +43,7 @@ button:active{transform:translateY(1px)}
 .navbar .chg{flex:none;color:var(--gold);font-weight:800}
 #nav{border:2px solid var(--line);border-radius:1rem;padding:.2rem .8rem;margin-top:.5rem}
 .navs{padding:.5rem 0 .3rem;border-bottom:2px solid var(--line)}
-.navh{margin:.2rem 0 0;font-size:.8rem;font-weight:800;color:var(--mute)}
+.navh{margin:.4rem 0 .1rem;font-size:1.25rem;font-weight:800;color:var(--ink);line-height:1.2;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:.25em}
 #pers select{width:100%}
 .ctl button{font-size:.85rem}
 @media(max-width:600px){.brand{display:none}.top{justify-content:flex-end}}
@@ -347,14 +347,19 @@ function loadVoices(){if(!('speechSynthesis' in window))return;voices=speechSynt
 if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
 $('#optVoice').onchange=e=>{S.voice=e.target.value;saveS();say('Так звучит этот голос.')};
 function clean(t){return String(t).replace(/(\d)\s*[–—-]\s*(\d)/g,'$1 — $2').replace(/(\d)\s*гг\./g,'$1 годы').replace(/(\d)\s*г\./g,'$1 год').replace(/(\s)вв\./g,'$1века').replace(/(\s[IVXLC]+)\s*в\./g,'$1 век').replace(/[«»"*]/g,'').replace(/т\.\s?к\./g,'так как').replace(/совр\./g,'современный')}
+let curU=null; // держим фразу в памяти: Safari иначе может оборвать её
 function say(t,cb){
   let done=false,tm=0;const fin=()=>{if(done)return;done=true;clearTimeout(tm);cb&&cb()};
   if(!('speechSynthesis' in window)){setTimeout(fin,10);return}
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(clean(t));u.lang='ru-RU';u.rate=S.rate;
-  const v=voices.find(x=>x.name===S.voice);if(v)u.voice=v;
-  u.onend=fin;u.onerror=fin;tm=setTimeout(fin,(t.length*90)/S.rate+3000);
-  speechSynthesis.speak(u);
+  const ss=speechSynthesis;
+  const go=()=>{
+    const u=new SpeechSynthesisUtterance(clean(t));u.lang='ru-RU';u.rate=S.rate;u.volume=1;
+    const v=voices.find(x=>x.name===S.voice);if(v)u.voice=v;
+    u.onend=fin;u.onerror=fin;curU=u;tm=setTimeout(fin,(t.length*90)/S.rate+3000);
+    ss.speak(u);try{ss.resume()}catch(e){}
+  };
+  // Safari на iPhone молчит, если сразу после остановки запустить новую фразу
+  if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,150)}else go();
 }
 const sayAuto=(t,cb)=>{if(S.auto||hf)say(t,cb);else if(cb)cb()};
 const stopSay=()=>{try{speechSynthesis.cancel()}catch(e){}};
