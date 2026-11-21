@@ -115,6 +115,10 @@ kbd{font:inherit;font-weight:800}
 .mt button.ok{border-color:var(--good);border-width:4px}.mt button.no{border-color:var(--bad);border-width:4px}
 .goal{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;font-weight:600;color:var(--ink);margin-bottom:.4rem}
 .goal b{color:var(--gold)}
+.q.long{font-size:1.25rem;font-weight:700}
+.ans.long{font-size:1.1rem;font-weight:600;line-height:1.4}
+.ex{display:block;font-size:.72em;font-weight:600;color:var(--ink);margin-top:.4rem;line-height:1.35}
+#grp button{font-size:.95rem}
 </style>
 </head>
 <body>
@@ -137,6 +141,7 @@ kbd{font:inherit;font-weight:800}
     <p class="note">Поставить на экран телефона как приложение: в Safari нажмите «Поделиться» → «На экран „Домой“». В Chrome на Android: меню ⋮ → «Добавить на главный экран».</p>
     <p class="note">Голосовые команды: «ответ», «помню», «не помню», «повтори», «дальше», «крупнее», «мельче», «стоп».</p>
   </div>
+  <nav id="grp" class="chips" aria-label="Что учим"></nav>
   <nav id="modes" class="chips tabs" aria-label="Режим">
     <button data-m="cards">Карточки</button>
     <button data-m="test">Тест</button>
@@ -167,11 +172,16 @@ const SECS=[
  {id:'dates',name:'Даты',src:D.dates,q:'Когда это было?',r:'Что произошло?',yrs:1},
  {id:'persons',name:'Личности',src:D.persons,q:'Кто это?',r:'Чем известен?'},
  {id:'terms',name:'Термины',src:D.terms,q:'Что это за термин?',r:'Что означает термин?'},
- {id:'maps',name:'Карты',q:'Какая это карта?',r:'Как узнать эту карту?'}];
+ {id:'maps',name:'Карты',q:'Какая это карта?',r:'Как узнать эту карту?'},
+ {id:'m_rus',name:'Русский',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
+ {id:'m_hist',name:'История',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
+ {id:'m_soc',name:'Обществознание',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'}];
+const GRP=s=>s.grp||'h';
 const PERIODS=[['all','Все',-1,9999],['p1','IX–XII вв.',0,1240],['p2','XIII–XV вв.',1240,1505],['p3','XVI–XVII вв.',1505,1689],['p4','XVIII в.',1689,1801],['p5','XIX в. – 1917',1801,1917],['p6','1917–1945',1917,1946],['p7','1946–1991',1946,1992],['p8','с 1992',1992,9999]];
 
 const ITEMS={};
 for(const s of SECS){
+  if(s.grp==='m'){ITEMS[s.id]=[];continue}
   if(s.id==='maps'){
     ITEMS.maps=D.maps.map((m,i)=>{
       const parts=[];let html='';
@@ -186,9 +196,13 @@ for(const s of SECS){
   }
 }
 
-let S=Object.assign({sec:'reign',per:'all',mode:'cards',rev:false,font:24,theme:'bw',rate:1,auto:true,voice:'',onlyBad:false},store.get('ege_s',{}));
+let S=Object.assign({grp:'h',sec:'reign',per:'all',mode:'cards',rev:false,font:24,theme:'bw',rate:1,auto:true,voice:'',onlyBad:false},store.get('ege_s',{}));
 let P=store.get('ege_p',{});
 const saveS=()=>store.set('ege_s',S), saveP=()=>store.set('ege_p',P);
+let M=store.get('ege_m',null);
+function loadM(m){if(!m)return;M=m;for(const k of ['rus','hist','soc'])ITEMS['m_'+k]=(m[k]||[]).map(c=>({id:'m:'+c.id,key:c.a,val:c.q,expl:c.e||'',src:c.src||'',year:null}))}
+loadM(M);
+fetch('mistakes.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;const fresh=JSON.stringify(m)!==JSON.stringify(M);loadM(m);store.set('ege_m',m);if(fresh&&GRP(sec())==='m')next();else renderChips()}).catch(()=>{});
 const sec=()=>SECS.find(x=>x.id===S.sec);
 let cur=null, revealed=false, answered=false, recent=[], session={n:0,ok:0}, hf=false, opts=[];
 
@@ -314,6 +328,8 @@ function grade(good){
 const Q=i=>S.rev?i.key:i.val, A=i=>S.rev?i.val:i.key;
 const QH=i=>S.rev?esc(i.key):(i.valHtml||esc(i.val));
 const label=()=>S.rev?sec().r:sec().q;
+const ansH=i=>esc(A(i)).replace(/;\s*(\d+\))/g,';<br>$1')+(!S.rev&&i.expl?'<span class="ex">Почему: '+esc(i.expl)+'</span>':'');
+const ansS=i=>A(i)+(!S.rev&&i.expl?'. '+i.expl:'');
 function boxName(i){const r=P[i.id];if(!r)return 'новое';return ['учим','учим','почти','выучено','выучено','выучено','выучено'][r.b]}
 
 /* ---------- distractors for test ---------- */
@@ -329,7 +345,7 @@ function distract(item){
 }
 
 /* ---------- render ---------- */
-function head(){return '<div class="lab"><span>'+esc(label())+'</span><span><b>'+boxName(cur)+'</b> · '+esc(sec().name)+'</span></div>'}
+function head(){return '<div class="lab"><span>'+esc(cur.src?cur.src:label())+'</span><span><b>'+boxName(cur)+'</b> · '+esc(sec().name)+'</span></div>'}
 function btn(cls,id,txt,ic){return '<button class="'+cls+(ic?' icon':'')+'" id="'+id+'">'+(ic||'')+txt+'</button>'}
 function next(){stopSay();revealed=false;answered=false;
   if(S.mode==='chrono'){newChrono();render();if(CH&&S.auto)say('Расставьте по порядку. '+CH.items.map((it,i)=>(i+1)+'. '+chText(it)).join('. '));return}
@@ -416,21 +432,21 @@ function render(){
   if(S.mode==='list'){renderList();return}
   if(S.mode==='chrono'){st.innerHTML=renderChrono();bind();return}
   if(S.mode==='match'){st.innerHTML=renderMatch();bind();return}
-  if(!cur){st.innerHTML='<div class="card"><p class="q" style="font-size:1.2rem">'+(S.onlyBad?'Ошибок в этом разделе нет. Отлично!':'Здесь пока ничего нет.')+'</p></div>';return}
-  let h='<div class="card">'+head()+'<div class="q">'+QH(cur)+'</div>';
+  if(!cur){st.innerHTML='<div class="card"><p class="q" style="font-size:1.2rem">'+(S.onlyBad?'Ошибок в этом разделе нет. Отлично!':GRP(sec())==='m'?'По этому предмету ошибок пока нет. Они появятся здесь, как только папа пришлёт скриншоты.':'Здесь пока ничего нет.')+'</p></div>';return}
+  let h='<div class="card">'+head()+'<div class="q'+(Q(cur).length>90?' long':'')+'">'+QH(cur)+'</div>';
   if(S.mode==='cards'){
-    if(revealed)h+='<div class="ans"><small>Ответ</small>'+esc(A(cur))+'</div>';
+    if(revealed)h+='<div class="ans'+(A(cur).length>70?' long':'')+'"><small>Ответ</small>'+ansH(cur)+'</div>';
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+btn('mic','bMic','Команда',MIC)+'</div>';
     h+=revealed?'<div class="row">'+btn('bad','bBad','Не помню')+btn('good','bGood','Помню')+'</div>':'<div class="row">'+btn('pri','bShow','Показать ответ')+'</div>';
     h+='<div class="heard" id="heard"></div><p class="note">На телефоне: нажмите на вопрос, чтобы увидеть ответ; смахните вправо — «помню», влево — «не помню».</p>';
   }else if(S.mode==='test'){
     if(!answered)opts=distract(cur);
     h+='<div class="opts">'+opts.map((o,i)=>'<button data-o="'+i+'"'+(answered?(o===cur?' class="ok"':(o===answered?' class="no"':'')):'')+'><i>'+(i+1)+'</i><span>'+esc(A(o))+'</span></button>').join('')+'</div>';
-    if(answered)h+='<div class="fb '+(answered===cur?'ok">Верно!':'no">Неверно. Правильно: '+esc(A(cur)))+'</div>';
+    if(answered)h+='<div class="fb '+(answered===cur?'ok">Верно!':'no">Неверно. Правильно: '+esc(A(cur)))+'</div>'+(cur.expl&&!S.rev?'<div class="ans"><small>Объяснение</small><span class="ex" style="margin:0">'+esc(cur.expl)+'</span></div>':'');
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+btn('mic','bMic','Сказать номер',MIC)+(answered?btn('pri','bNext','Дальше'):'')+'</div><div class="heard" id="heard"></div>';
   }else{
     h+='<div class="row" style="margin-top:.2rem"><input type="text" id="inp" autocomplete="off" placeholder="Скажите или напечатайте ответ"'+(answered?' disabled':'')+'></div>';
-    if(answered)h+='<div class="fb '+(answered==='ok'?'ok">Верно!':'no">Неверно.')+'</div><div class="ans"><small>Правильный ответ</small>'+esc(A(cur))+'</div>';
+    if(answered)h+='<div class="fb '+(answered==='ok'?'ok">Верно!':'no">Неверно.')+'</div><div class="ans'+(A(cur).length>70?' long':'')+'"><small>Правильный ответ</small>'+ansH(cur)+'</div>';
     h+='<div class="row">'+btn('mic pri','bMic','Сказать ответ',MIC)+(answered?btn('pri','bNext','Дальше'):btn('','bCheck','Проверить'))+'</div>';
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+(answered?'':btn('bad','bDunno','Не знаю'))+(answered==='no'?btn('good','bFix','Я ответил верно'):'')+btn(hf?'bad':'','bHF',hf?'Остановить «без рук»':'Режим «без рук»')+'</div>';
     h+='<div class="heard" id="heard"></div><p class="note">«Без рук»: тренажёр сам читает вопрос, слушает ответ и говорит, верно ли. Скажите «стоп», чтобы закончить.</p>';
@@ -473,7 +489,7 @@ function bind(){
     const q=card.querySelector('.q');if(q&&!revealed){q.style.cursor='pointer';q.onclick=reveal}
   }
 }
-function reveal(){revealed=true;render();say('Ответ: '+A(cur))}
+function reveal(){revealed=true;render();say('Ответ: '+ansS(cur))}
 function choose(i){
   if(answered)return;const o=opts[i];answered=o;grade(o===cur);render();
   say(o===cur?'Верно!':'Неверно. Правильно: '+A(cur));
@@ -532,7 +548,10 @@ function renderList(){
   $('#srch').oninput=draw;draw();
 }
 function renderChips(){
-  $('#secs').innerHTML=SECS.map(s=>'<button data-s="'+s.id+'"'+(s.id===S.sec?' class="on"':'')+'>'+s.name+'<span class="n">'+ITEMS[s.id].length+'</span></button>').join('');
+  const nM=['m_rus','m_hist','m_soc'].reduce((a,k)=>a+ITEMS[k].length,0);
+  $('#grp').innerHTML='<button data-g="h"'+(GRP(sec())==='h'?' class="on"':'')+'>Шпаргалка по истории</button><button data-g="m"'+(GRP(sec())==='m'?' class="on"':'')+'>Мои ошибки<span class="n">'+nM+'</span></button>';
+  document.querySelectorAll('#grp button').forEach(b=>b.onclick=()=>{const g=b.dataset.g;if(GRP(sec())===g)return;S.sec=g==='m'?(['m_rus','m_hist','m_soc'].find(k=>ITEMS[k].length)||'m_rus'):'reign';S.per='all';recent=[];hf=false;if(g==='m'&&(S.mode==='chrono'))S.mode='cards';saveS();next()});
+  $('#secs').innerHTML=SECS.filter(s=>GRP(s)===GRP(sec())).map(s=>'<button data-s="'+s.id+'"'+(s.id===S.sec?' class="on"':'')+'>'+s.name+'<span class="n">'+ITEMS[s.id].length+'</span></button>').join('');
   const showP=!!sec().yrs;
   $('#pers').innerHTML=(showP?PERIODS.map(p=>'<button data-p="'+p[0]+'"'+(p[0]===S.per?' class="on"':'')+'>'+p[1]+'</button>').join(''):'')+'<button id="badBtn"'+(S.onlyBad?' class="on"':'')+'>Только ошибки</button>';
   document.querySelectorAll('#secs button').forEach(b=>b.onclick=()=>{S.sec=b.dataset.s;S.per='all';recent=[];hf=false;saveS();next()});
