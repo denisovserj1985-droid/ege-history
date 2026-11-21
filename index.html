@@ -120,6 +120,9 @@ input[type=text],input[type=search],select{width:100%;font-size:1.05rem;padding:
 .legend{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem}
 .dot{display:inline-block;width:.8em;height:.8em;border-radius:50%;margin-right:.3em;vertical-align:-.05em}
 .list{margin-top:.6rem;display:grid;gap:.5rem;padding-bottom:1rem}
+.list button.now{border:4px solid var(--gold)}
+#lplay{width:100%;margin-top:.6rem}
+#lplay.playing{position:sticky;top:.4rem;z-index:5;background:var(--bg);border-color:var(--gold)}
 .list button{text-align:left;font-weight:500;font-size:1rem;display:block;width:100%;overflow-wrap:anywhere}
 .list b{font-weight:800}
 .ch{display:grid;gap:.75rem;margin-top:.6rem}
@@ -609,7 +612,7 @@ function gradeButtons(){
   const now=Date.now(),r=P[cur.id],gs=S.grades===2?[1,3]:[1,2,3,4];
   return '<div class="grades">'+gs.map(g=>'<button class="g'+g+'" data-g="'+g+'">'+(S.grades===2?(g===1?'Не помню':'Помню'):GN[g])+'<small>через '+ivLabel(schedule(r,g,now).due-now)+'</small></button>').join('')+'</div>';
 }
-function render(){
+function render(){lstop();
   if(sec().ref&&!['cards','list'].includes(S.mode)){S.mode='cards';saveS();if(!cur||cur.sec!==S.sec)cur=pick()}
   renderChips();renderStats();
   const st=$('#stage');
@@ -737,14 +740,25 @@ function runHF(){
   });
   ask();
 }
+const lrun={id:0,on:false};
+function lstop(){if(lrun.on){lrun.id++;lrun.on=false;stopSay()}const b=$('#lplay');if(b){b.textContent='▶ Слушать всё подряд';b.classList.remove('playing')}document.querySelectorAll('#lres button.now').forEach(x=>x.classList.remove('now'))}
 function renderList(){
   const st=$('#stage');const prev=$('#srch')?$('#srch').value:'';
-  st.innerHTML='<div class="card"><input type="search" id="srch" aria-label="Поиск" placeholder="Поиск: слово, имя или год" value="'+esc(prev)+'"><div id="lres" class="list"></div></div>';
+  st.innerHTML='<div class="card"><input type="search" id="srch" aria-label="Поиск" placeholder="Поиск: слово, имя или год" value="'+esc(prev)+'"><button id="lplay" class="pri">▶ Слушать всё подряд</button><div id="lres" class="list"></div></div>';
+  let a=[];const lineT=i=>i.id.startsWith('m:')||i.how||i.sec.startsWith('s_')?i.val+'. '+i.key:i.key+'. '+i.val;
   const draw=()=>{
-    const q=norm($('#srch').value);const all=pool();const num=new Map(all.map((x,k)=>[x.id,k+1]));const a=all.filter(i=>!q||norm(i.key+' '+i.val).includes(q));
+    lstop();const q=norm($('#srch').value);const all=pool();const num=new Map(all.map((x,k)=>[x.id,k+1]));a=all.filter(i=>!q||norm(i.key+' '+i.val).includes(q));
     $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?', показаны первые 150':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:')||i.how||i.sec.startsWith('s_');return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(m?i.key:i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
-    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.id.startsWith('m:')||i.how||i.sec.startsWith('s_')?i.val+' '+i.key:i.key+'. '+i.val)});
+    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const k=a.findIndex(x=>x.id===b.dataset.id);if(lrun.on)lplay(k);else{lstop();say(lineT(a[k]))}});
   };
+  // «Слушать всё подряд»: читает строки по очереди, текущая обведена; повторное нажатие — стоп
+  const lplay=k=>{lstop();const t=++lrun.id;lrun.on=true;const btn=$('#lplay');btn.textContent='■ Остановить';btn.classList.add('playing');
+    const step=j=>{if(t!==lrun.id||!document.body.contains(btn))return;if(j>=a.length){lstop();return}
+      document.querySelectorAll('#lres button.now').forEach(x=>x.classList.remove('now'));
+      const el=document.querySelector('#lres button[data-id="'+a[j].id+'"]');if(el){el.classList.add('now');el.scrollIntoView({block:'center',behavior:'smooth'})}
+      say(lineT(a[j]),()=>{if(t===lrun.id)setTimeout(()=>step(j+1),500)})};
+    step(k||0)};
+  $('#lplay').onclick=()=>{if(lrun.on)lstop();else lplay(0)};
   $('#srch').oninput=draw;draw();
 }
 function renderChips(){
