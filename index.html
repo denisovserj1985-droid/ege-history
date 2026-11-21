@@ -134,7 +134,7 @@ kbd{font:inherit;font-weight:800}
 </header>
 <div class="wrap">
   <div id="vPanel" class="panel" hidden>
-    <label><input type="checkbox" id="optAuto"> Читать вопросы вслух автоматически</label>
+    <label><input type="checkbox" id="optAuto"> Озвучивать автоматически (иначе — только по кнопке)</label>
     <label>Скорость речи <input type="range" id="optRate" min="0.6" max="1.5" step="0.1"> <span id="rateV"></span></label>
     <label>Голос <select id="optVoice" style="flex:1 1 10rem;min-height:2.3rem;border:2px solid var(--line);border-radius:.5rem;background:var(--bg)"></select></label>
     <p class="note" id="srNote"></p>
@@ -196,7 +196,8 @@ for(const s of SECS){
   }
 }
 
-let S=Object.assign({grp:'h',sec:'reign',per:'all',mode:'cards',rev:false,font:24,theme:'bw',rate:1,auto:true,voice:'',onlyBad:false},store.get('ege_s',{}));
+let S=Object.assign({grp:'h',sec:'reign',per:'all',mode:'cards',rev:false,font:24,theme:'bw',rate:1,auto:false,voice:'',onlyBad:false},store.get('ege_s',{}));
+if(!S.voiceV){S.auto=false;S.voiceV=2;store.set('ege_s',S)}
 let P=store.get('ege_p',{});
 const saveS=()=>store.set('ege_s',S), saveP=()=>store.set('ege_p',P);
 let M=store.get('ege_m',null);
@@ -248,6 +249,7 @@ function say(t,cb){
   const tm=setTimeout(fin,(t.length*90)/S.rate+3000);
   speechSynthesis.speak(u);
 }
+const sayAuto=(t,cb)=>{if(S.auto||hf)say(t,cb);else if(cb)cb()};
 const stopSay=()=>{try{speechSynthesis.cancel()}catch(e){}};
 
 /* ---------- speech in ---------- */
@@ -319,7 +321,7 @@ function gradeItem(it,good){
   r.d=Date.now()+IV[r.b];P[it.id]=r;saveP();
   session.n++;if(good)session.ok++;
   const k=dayKey();DAYS[k]=(DAYS[k]||0)+1;store.set('ege_days',DAYS);
-  if(DAYS[k]===GOAL)setTimeout(()=>{toast('Дневная цель выполнена! '+GOAL+' ответов');say('Отлично! Дневная цель выполнена.')},900);
+  if(DAYS[k]===GOAL)setTimeout(()=>{toast('Дневная цель выполнена! '+GOAL+' ответов');sayAuto('Отлично! Дневная цель выполнена.')},900);
 }
 function grade(good){
   if(!cur)return;gradeItem(cur,good);
@@ -385,7 +387,7 @@ function chTap(i){
   if(CH.pick.length===CH.items.length){
     CH.done=true;const sorted=CH.items.slice().sort((x,y)=>x.year-y.year);
     let all=true;CH.pick.forEach((ix,pos)=>{const g=sorted[pos]===CH.items[ix];if(!g)all=false;gradeItem(CH.items[ix],g)});
-    render();say(all?'Верно!':'Есть ошибки. Правильный порядок: '+sorted.map(it=>chText(it)).join('; '));
+    render();sayAuto(all?'Верно!':'Есть ошибки. Правильный порядок: '+sorted.map(it=>chText(it)).join('; '));
   }else render();
 }
 /* ---------- соответствие ---------- */
@@ -424,7 +426,7 @@ function mtA(a){
 function mtCheck(){
   if(Object.keys(MT.map).length<MT.q.length){toast('Сначала сопоставьте все строки');return}
   MT.done=true;let all=true;MT.q.forEach((it,i)=>{const g=MT.ans[MT.map[i]]===it;if(!g)all=false;gradeItem(it,g)});
-  render();say(all?'Верно!':'Есть ошибки. Правильный ответ: '+MT.q.map(it=>MT.ans.indexOf(it)+1).join(', '));
+  render();sayAuto(all?'Верно!':'Есть ошибки. Правильный ответ: '+MT.q.map(it=>MT.ans.indexOf(it)+1).join(', '));
 }
 function render(){
   renderChips();renderStats();
@@ -464,10 +466,10 @@ function bind(){
   on('bMic',()=>{
     if(S.mode==='cards')listen(a=>a&&command(a[0]));
     else if(S.mode==='test')listen(a=>a&&testVoice(a));
-    else listen(a=>{if(a){$('#inp').value=a[0];if(!command(a[0],true))fbSay(checkAns(a))}});
+    else listen(a=>{if(a){$('#inp').value=a[0];if(!command(a[0],true)){const ok=checkAns(a);if(ok!==undefined)say(ok?'Верно!':'Неверно. Правильный ответ: '+A(cur))}}});
   });
   on('bCheck',()=>{const v=$('#inp').value.trim();if(v)fbSay(checkAns([v]))});
-  on('bDunno',()=>{answered='no';grade(false);render();say('Правильный ответ: '+A(cur))});
+  on('bDunno',()=>{answered='no';grade(false);render();sayAuto('Правильный ответ: '+A(cur))});
   on('bFix',()=>{const r=P[cur.id];if(r){r.b=Math.min(IV.length-1,1);r.w=Math.max(0,(r.w||1)-1);r.d=Date.now()+IV[r.b];saveP()}session.ok++;answered='ok';render()});
   on('bHF',()=>{hf=!hf;if(hf)runHF();else{stopSay();try{rec&&rec.abort()}catch(e){}render()}});
   const inp=$('#inp');if(inp){inp.onkeydown=e=>{if(e.key==='Enter'){const v=inp.value.trim();if(v)fbSay(checkAns([v]))}};if(!answered&&!hf&&matchMedia('(pointer:fine)').matches)inp.focus()}
@@ -489,17 +491,17 @@ function bind(){
     const q=card.querySelector('.q');if(q&&!revealed){q.style.cursor='pointer';q.onclick=reveal}
   }
 }
-function reveal(){revealed=true;render();say('Ответ: '+ansS(cur))}
+function reveal(){revealed=true;render();sayAuto('Ответ: '+ansS(cur))}
 function choose(i){
   if(answered)return;const o=opts[i];answered=o;grade(o===cur);render();
-  say(o===cur?'Верно!':'Неверно. Правильно: '+A(cur));
+  sayAuto(o===cur?'Верно!':'Неверно. Правильно: '+A(cur));
 }
 function checkAns(alts){
   if(answered)return;
   const ok=isRight(A(cur),alts);answered=ok?'ok':'no';grade(ok);render();
   return ok;
 }
-function fbSay(ok){if(ok===undefined)return;say(ok?'Верно!':'Неверно. Правильный ответ: '+A(cur))}
+function fbSay(ok){if(ok===undefined)return;sayAuto(ok?'Верно!':'Неверно. Правильный ответ: '+A(cur))}
 const NUMW=[['1','один','первый','перв','раз'],['2','два','второй','втор'],['3','три','третий','трет'],['4','четыре','четвертый','четв']];
 function testVoice(alts){
   const t=norm(alts[0]);if(command(alts[0],true))return;
