@@ -342,7 +342,13 @@ function applyLook(){
 
 }
 function keepCard(){const c=$('#stage .card');if(c)c.scrollIntoView({block:'start',behavior:'instant'})}
-function font(d){S.font=Math.max(16,Math.min(60,S.font+d));applyLook();saveS();keepCard()}
+// при смене размера оставляем на месте то, что сейчас вверху экрана
+function font(d){
+  const y=Math.min(innerHeight/3,160),el=document.elementFromPoint(innerWidth/2,y);
+  const t0=el?el.getBoundingClientRect().top:0;
+  S.font=Math.max(16,Math.min(60,S.font+d));applyLook();saveS();
+  if(el&&document.contains(el))window.scrollBy(0,el.getBoundingClientRect().top-t0);
+}
 $('#fMinus').onclick=()=>font(-2);$('#fPlus').onclick=()=>font(2);
 function navSummary(){const mn={cards:'Карточки',test:'Тест',voice:'Ответ голосом',chrono:'Хронология',match:'Соответствие',list:'Справочник'}[S.mode];const open=!$('#nav').hidden;
   $('#navBtn').innerHTML='<span><b>'+esc(sec().name)+'</b> · '+mn+(S.rev?' · наоборот':'')+(S.onlyBad?' · только ошибки':'')+'</span><span class="chg">'+(open?'Свернуть':'Изменить')+'</span>';$('#navBtn').setAttribute('aria-expanded',open)}
