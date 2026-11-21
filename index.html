@@ -544,8 +544,8 @@ function renderList(){
   st.innerHTML='<div class="card"><input type="search" id="srch" placeholder="Поиск: слово, имя или год" value="'+esc(prev)+'"><div id="lres" class="list"></div></div>';
   const draw=()=>{
     const q=norm($('#srch').value);const a=pool().filter(i=>!q||norm(i.key+' '+i.val).includes(q));
-    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?' (показаны первые 150)':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>'<button data-id="'+i.id+'"><b>'+esc(i.key)+'</b> — '+esc(i.val)+'</button>').join('');
-    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.key+'. '+i.val)});
+    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?' (показаны первые 150)':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:');return '<button data-id="'+i.id+'"><b>'+esc(m?i.val:i.key)+'</b> — '+esc(m?i.key:i.val)+'</button>'}).join('');
+    document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const i=a.find(x=>x.id===b.dataset.id);say(i.id.startsWith('m:')?i.val+' '+i.key:i.key+'. '+i.val)});
   };
   $('#srch').oninput=draw;draw();
 }
