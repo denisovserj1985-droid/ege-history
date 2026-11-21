@@ -42,6 +42,9 @@ button:active{transform:translateY(1px)}
 .navbar b{font-weight:800}
 .navbar .chg{flex:none;color:var(--gold);font-weight:800}
 #nav{border:2px solid var(--line);border-radius:1rem;padding:.2rem .8rem;margin-top:.5rem}
+.navs{padding:.5rem 0 .3rem;border-bottom:2px solid var(--line)}
+.navh{margin:.2rem 0 0;font-size:.8rem;font-weight:800;color:var(--mute)}
+#pers select{width:100%}
 .ctl button{font-size:.85rem}
 @media(max-width:600px){.brand{display:none}.top{justify-content:flex-end}}
 .card{border:2px solid var(--line);border-radius:1rem;padding:1rem 1.1rem 0;margin-top:.5rem}
@@ -145,7 +148,9 @@ input[type=text],input[type=search],select{width:100%;font-size:1.05rem;padding:
 <div class="wrap">
   <button id="navBtn" class="navbar" aria-expanded="false"></button>
   <div id="nav" hidden>
-  <nav id="grp" class="chips" aria-label="Что учим"></nav>
+  <section class="navs"><h3 class="navh">Что учим</h3><nav id="grp" class="chips" aria-label="Что учим"></nav></section>
+  <section class="navs" id="secsBox"><h3 class="navh">Раздел</h3><nav id="secs" class="chips" aria-label="Раздел"></nav></section>
+  <section class="navs"><h3 class="navh">Как учить</h3>
   <nav id="modes" class="chips" aria-label="Режим">
     <button data-m="cards">Карточки</button>
     <button data-m="test">Тест</button>
@@ -153,10 +158,9 @@ input[type=text],input[type=search],select{width:100%;font-size:1.05rem;padding:
     <button data-m="chrono">Хронология</button>
     <button data-m="match">Соответствие</button>
     <button data-m="list">Справочник</button>
-    <button id="revBtn">Наоборот</button>
-  </nav>
-  <nav id="secs" class="chips" aria-label="Раздел"></nav>
-  <div id="pers" class="chips" aria-label="Период"></div>
+  </nav></section>
+  <section class="navs" id="persBox"><h3 class="navh">Период</h3><div id="pers" class="chips" aria-label="Период"></div></section>
+  <section class="navs"><h3 class="navh">Дополнительно</h3><div class="chips"><button id="revBtn">Вопрос и ответ наоборот</button><button id="badBtn">Только мои ошибки в разделе</button></div></section>
   <div class="row" style="margin-bottom:.6rem"><button id="navDone" class="pri">Готово</button></div>
   </div>
   <main id="stage"></main>
@@ -333,7 +337,7 @@ function keepCard(){const c=$('#stage .card');if(c)c.scrollIntoView({block:'star
 function font(d){S.font=Math.max(16,Math.min(60,S.font+d));applyLook();saveS();keepCard()}
 $('#fMinus').onclick=()=>font(-2);$('#fPlus').onclick=()=>font(2);
 function navSummary(){const mn={cards:'Карточки',test:'Тест',voice:'Ответ голосом',chrono:'Хронология',match:'Соответствие',list:'Справочник'}[S.mode];const open=!$('#nav').hidden;
-  $('#navBtn').innerHTML='<span><b>'+esc(sec().name)+'</b> · '+mn+(S.rev?' · наоборот':'')+'</span><span class="chg">'+(open?'Свернуть':'Изменить')+'</span>';$('#navBtn').setAttribute('aria-expanded',open)}
+  $('#navBtn').innerHTML='<span><b>'+esc(sec().name)+'</b> · '+mn+(S.rev?' · наоборот':'')+(S.onlyBad?' · только ошибки':'')+'</span><span class="chg">'+(open?'Свернуть':'Изменить')+'</span>';$('#navBtn').setAttribute('aria-expanded',open)}
 $('#navBtn').onclick=()=>{$('#nav').hidden=!$('#nav').hidden;navSummary()};
 $('#navDone').onclick=()=>{$('#nav').hidden=true;navSummary();keepCard()};
 
@@ -708,15 +712,17 @@ function renderChips(){
   $('#grp').innerHTML=[['h','Шпаргалка по истории',''],['m','Мои ошибки',nM],['x','Всё вперемешку','']].map(([k,n,c])=>'<button data-gr="'+k+'"'+(g===k?' class="on"':'')+'>'+n+(c!==''?'<span class="n">'+c+'</span>':'')+'</button>').join('');
   document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const k=b.dataset.gr;if(g===k)return;S.sec=k==='m'?(['m_rus','m_hist','m_soc'].find(x=>ITEMS[x].length)||'m_rus'):k==='x'?'mix':'reign';S.per='all';recent=[];hf=false;saveS();next()});
   $('#secs').innerHTML=g==='x'?'':SECS.filter(s=>GRP(s)===g).map(s=>'<button data-s="'+s.id+'"'+(s.id===S.sec?' class="on"':'')+'>'+s.name+'<span class="n">'+ITEMS[s.id].length+'</span></button>').join('');
-  $('#pers').innerHTML=(sec().yrs?'<select id="perSel" aria-label="Период">'+PERIODS.map(p=>'<option value="'+p[0]+'"'+(p[0]===S.per?' selected':'')+'>'+(p[0]==='all'?'Все периоды':'Период: '+p[1])+'</option>').join('')+'</select>':'')+'<button id="badBtn"'+(S.onlyBad?' class="on"':'')+'>Только ошибки</button>';
+  $('#persBox').hidden=!sec().yrs;$('#secsBox').hidden=g==='x';
+  $('#pers').innerHTML=sec().yrs?'<select id="perSel" aria-label="Период">'+PERIODS.map(p=>'<option value="'+p[0]+'"'+(p[0]===S.per?' selected':'')+'>'+(p[0]==='all'?'Все периоды':p[1])+'</option>').join('')+'</select>':'';
+  $('#badBtn').classList.toggle('on',S.onlyBad);
   document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{S.sec=b.dataset.s;S.per='all';recent=[];hf=false;saveS();next()});
   const ps=$('#perSel');if(ps)ps.onchange=()=>{S.per=ps.value;recent=[];saveS();next()};
-  $('#badBtn').onclick=()=>{S.onlyBad=!S.onlyBad;saveS();next()};
   document.querySelectorAll('[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===S.mode));
   $('#revBtn').classList.toggle('on',S.rev);
 }
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;hf=false;saveS();if(S.mode==='list'){stopSay();render()}else next()});
 $('#revBtn').onclick=()=>{S.rev=!S.rev;saveS();next()};
+$('#badBtn').onclick=()=>{S.onlyBad=!S.onlyBad;saveS();next()};
 function renderStats(){
   const a=pool(),now=Date.now();let done=0,work=0,due=0;
   for(const i of a){const r=P[i.id];if(!r)continue;if(learned(r))done++;else work++;if(r.due<=now)due++}
