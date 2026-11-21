@@ -287,7 +287,7 @@ for(const s of SECS){
 function rebuildMix(){ITEMS.mix=SECS.filter(s=>s.id!=='mix'&&!s.ref).flatMap(s=>ITEMS[s.id])}
 rebuildMix();
 // Шпаргалка по обществознанию: soc.json, разделы добавляются сами
-function loadSoc(d){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:'s'};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r});ITEMS[x.id]=x.items.map(([k,v,e],i)=>{const g=(k.match(/^(Как[а-яё]* [^:]{3,40}):/)||[])[1];return {id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null,grp:g||'',sg:g?1:0}})}rebuildMix()}
+function loadSoc(d){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:'s'};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r});ITEMS[x.id]=x.items.map(([k,v,e],i)=>{const g=(k.match(/^((?:Как|Кто)[а-яё]* [^:]{3,40}):/)||[])[1];return {id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null,grp:g||'',sg:g?1:0}})}rebuildMix()}
 loadSoc(store.get('ege_soc',null));
 
 /* ---------- состояние ---------- */
