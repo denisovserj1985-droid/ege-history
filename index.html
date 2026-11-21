@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>История ЕГЭ тренажёр</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#b3121b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="История ЕГЭ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -89,6 +95,24 @@ input[type=text],input[type=search]{width:100%;font-size:1.1rem;padding:.5rem .7
 .note{font-size:.8rem;color:var(--mute);margin:.4rem 0}
 .toast{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:.6rem;font-size:.9rem;max-width:92vw;z-index:9;display:none}
 kbd{font:inherit;font-weight:800}
+.ch{display:grid;gap:.5rem;margin-top:.6rem}
+.ch button{text-align:left;font-size:1.05rem;min-height:3rem;display:flex;gap:.7rem;align-items:flex-start;padding:.5rem .8rem;overflow-wrap:anywhere}
+.ch button .nb{flex:none;display:inline-grid;place-items:center;width:1.7em;height:1.7em;border-radius:50%;border:2px solid var(--line);font-weight:800;font-size:.9em}
+.ch button.pk .nb{background:var(--pri);color:var(--priInk);border-color:var(--pri)}
+.ch button.ok{border-color:var(--good);border-width:4px}.ch button.no{border-color:var(--bad);border-width:4px}
+.ch small{display:block;color:var(--mute);font-weight:600;font-size:.8em}
+.mt{display:grid;gap:.8rem;margin-top:.6rem}
+@media(min-width:900px){.mt{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}}
+.mt h3{margin:.2rem 0;font-size:.85rem;color:var(--mute);font-weight:600}
+.mt .col{display:grid;gap:.45rem;align-content:start}
+.mt button{text-align:left;font-size:1rem;display:flex;gap:.6rem;align-items:flex-start;padding:.45rem .7rem;min-height:2.8rem;overflow-wrap:anywhere}
+.mt button i{font-style:normal;font-weight:800;color:var(--gold);flex:none;min-width:1.2em}
+.mt button.sel{outline:4px solid var(--gold);outline-offset:1px}
+.mt button.used{opacity:.55}
+.mt button .as{margin-left:auto;flex:none;font-weight:800;color:var(--pri)}
+.mt button.ok{border-color:var(--good);border-width:4px}.mt button.no{border-color:var(--bad);border-width:4px}
+.goal{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;font-weight:600;color:var(--ink);margin-bottom:.4rem}
+.goal b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -108,12 +132,15 @@ kbd{font:inherit;font-weight:800}
     <label>Скорость речи <input type="range" id="optRate" min="0.6" max="1.5" step="0.1"> <span id="rateV"></span></label>
     <label>Голос <select id="optVoice" style="flex:1 1 10rem;min-height:2.3rem;border:2px solid var(--line);border-radius:.5rem;background:var(--bg)"></select></label>
     <p class="note" id="srNote"></p>
+    <p class="note">Поставить на экран телефона как приложение: в Safari нажмите «Поделиться» → «На экран „Домой“». В Chrome на Android: меню ⋮ → «Добавить на главный экран».</p>
     <p class="note">Голосовые команды: «ответ», «помню», «не помню», «повтори», «дальше», «крупнее», «мельче», «стоп».</p>
   </div>
   <nav id="modes" class="chips tabs" aria-label="Режим">
     <button data-m="cards">Карточки</button>
     <button data-m="test">Тест</button>
     <button data-m="voice">Ответ голосом</button>
+    <button data-m="chrono">Хронология</button>
+    <button data-m="match">Соответствие</button>
     <button data-m="list">Справочник</button>
     <button id="revBtn" title="Поменять вопрос и ответ местами">⇄ Наоборот</button>
   </nav>
@@ -264,12 +291,19 @@ function pick(){
   if(fresh.length){const k=sec().yrs?Math.min(3,fresh.length):fresh.length;return fresh[Math.floor(Math.random()*k)]}
   return src.slice().sort((x,y)=>P[x.id].d-P[y.id].d)[0];
 }
-function grade(good){
-  if(!cur)return;
-  const r=P[cur.id]||{b:0,d:0,w:0};
+let DAYS=store.get('ege_days',{});const GOAL=30;
+const dayKey=(t=new Date())=>t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();
+function streak(){let n=0;const t=new Date();if(!DAYS[dayKey(t)])t.setDate(t.getDate()-1);while(DAYS[dayKey(t)]){n++;t.setDate(t.getDate()-1)}return n}
+function gradeItem(it,good){
+  const r=P[it.id]||{b:0,d:0,w:0};
   if(good){r.b=Math.min(IV.length-1,r.b+1)}else{r.b=0;r.w=(r.w||0)+1}
-  r.d=Date.now()+IV[r.b];P[cur.id]=r;saveP();
+  r.d=Date.now()+IV[r.b];P[it.id]=r;saveP();
   session.n++;if(good)session.ok++;
+  const k=dayKey();DAYS[k]=(DAYS[k]||0)+1;store.set('ege_days',DAYS);
+  if(DAYS[k]===GOAL)setTimeout(()=>{toast('Дневная цель выполнена! '+GOAL+' ответов');say('Отлично! Дневная цель выполнена.')},900);
+}
+function grade(good){
+  if(!cur)return;gradeItem(cur,good);
   recent.push(cur.id);if(recent.length>4)recent.shift();
 }
 const Q=i=>S.rev?i.key:i.val, A=i=>S.rev?i.val:i.key;
@@ -292,18 +326,95 @@ function distract(item){
 /* ---------- render ---------- */
 function head(){return '<div class="lab"><span>'+esc(label())+'</span><span><b>'+boxName(cur)+'</b> · '+esc(sec().name)+'</span></div>'}
 function btn(cls,id,txt,ic){return '<button class="'+cls+(ic?' icon':'')+'" id="'+id+'">'+(ic||'')+txt+'</button>'}
-function next(){stopSay();cur=pick();revealed=false;answered=false;render();if(cur&&S.auto&&S.mode!=='list'&&!hf)say(label()+' '+Q(cur))}
+function next(){stopSay();revealed=false;answered=false;
+  if(S.mode==='chrono'){newChrono();render();return}
+  if(S.mode==='match'){newMatch();render();return}
+  cur=pick();render();if(cur&&S.auto&&S.mode!=='list'&&!hf)say(label()+' '+Q(cur))}
+/* ---------- хронология ---------- */
+let CH=null,MT=null;
+function sample(a,n,key){const c=a.slice(),o=[],seen=new Set();while(o.length<n&&c.length){const x=c.splice(Math.floor(Math.random()*c.length),1)[0];const k=key(x);if(!seen.has(k)){seen.add(k);o.push(x)}}return o}
+function newChrono(){
+  if(!sec().yrs){CH=null;return}
+  const a=pool().filter(i=>i.year!==null);
+  const due=a.filter(i=>!P[i.id]||P[i.id].d<=Date.now());
+  const src=due.length>=8?due:a;
+  CH={items:sample(src,4,i=>i.year),pick:[],done:false};
+  if(CH.items.length<3)CH=null;
+}
+function chText(i){return S.sec==='reign'?i.val:i.val}
+function renderChrono(){
+  if(!sec().yrs)return '<div class="card"><p class="q" style="font-size:1.2rem">Хронология работает в разделах «Правители» и «Даты».</p><div class="row"><button class="pri" id="toDates">Перейти к датам</button></div></div>';
+  if(!CH)return '<div class="card"><p class="q" style="font-size:1.2rem">Мало событий в этом периоде. Выберите период пошире.</p></div>';
+  const sorted=CH.items.slice().sort((x,y)=>x.year-y.year);
+  let h='<div class="card"><div class="lab"><span>Расставьте в хронологическом порядке: нажимайте от самого раннего к самому позднему</span><span>'+esc(sec().name)+'</span></div><div class="ch">';
+  h+=CH.items.map((it,i)=>{const pos=CH.pick.indexOf(i);let cls=pos>=0?'pk':'';if(CH.done)cls+=sorted[pos]===it?' ok':' no';
+    return '<button data-c="'+i+'" class="'+cls+'"><span class="nb">'+(pos>=0?pos+1:'')+'</span><span>'+esc(chText(it))+(CH.done?'<small>'+esc(it.key)+(sorted[pos]===it?'':' — должно быть '+(sorted.indexOf(it)+1)+'-м')+'</small>':'')+'</span></button>'}).join('');
+  h+='</div>';
+  if(CH.done){const ok=CH.items.every((it,i)=>sorted[CH.pick.indexOf(i)]===it);h+='<div class="fb '+(ok?'ok">Верно! Ответ ЕГЭ: ':'no">Есть ошибки. Правильно: ')+sorted.map(it=>CH.items.indexOf(it)+1).join('')+'</div>'}
+  h+='<div class="row">'+btn('','bChSay','Прочитать',SPK)+(CH.done?btn('pri','bNext','Дальше'):btn('','bChUndo','Отменить последнее'))+'</div>';
+  h+='<p class="note">Цифры в ответе ЕГЭ — номера событий сверху вниз в правильном порядке.</p></div>';
+  return h;
+}
+function chTap(i){
+  if(CH.done)return;const p=CH.pick.indexOf(i);
+  if(p>=0){CH.pick.splice(p);render();return}
+  CH.pick.push(i);
+  if(CH.pick.length===CH.items.length){
+    CH.done=true;const sorted=CH.items.slice().sort((x,y)=>x.year-y.year);
+    let all=true;CH.pick.forEach((ix,pos)=>{const g=sorted[pos]===CH.items[ix];if(!g)all=false;gradeItem(CH.items[ix],g)});
+    render();say(all?'Верно!':'Есть ошибки. Правильный порядок: '+sorted.map(it=>chText(it)).join('; '));
+  }else render();
+}
+/* ---------- соответствие ---------- */
+const LET=['А','Б','В','Г'];
+function newMatch(){
+  const a=pool();if(a.length<4){MT=null;return}
+  const due=a.filter(i=>!P[i.id]||P[i.id].d<=Date.now());
+  const q=sample(due.length>=8?due:a,4,i=>A(i));
+  const extra=sample(ITEMS[S.sec].filter(i=>!q.some(x=>A(x)===A(i))),2,i=>A(i));
+  const ans=q.concat(extra);for(let i=ans.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ans[i],ans[j]]=[ans[j],ans[i]]}
+  MT={q,ans,map:{},sel:null,done:false};
+}
+function renderMatch(){
+  if(!MT)return '<div class="card"><p class="q" style="font-size:1.2rem">Мало материала. Выберите период пошире.</p></div>';
+  const tq=S.rev?'Ответы':label().replace('?','');
+  let h='<div class="card"><div class="lab"><span>Установите соответствие: нажмите строку слева, потом подходящий ответ</span><span>'+esc(sec().name)+'</span></div><div class="mt"><div class="col"><h3>'+esc(tq)+'</h3>';
+  h+=MT.q.map((it,i)=>{const a=MT.map[i];let cls=MT.sel===i?'sel':'';if(MT.done)cls=MT.ans[a]===it?'ok':'no';
+    return '<button data-q="'+i+'" class="'+cls+'"><i>'+LET[i]+'</i><span>'+(S.sec==='maps'&&!S.rev?esc(it.markers||Q(it)):esc(Q(it)))+(MT.done&&MT.ans[a]!==it?'<small style="display:block;color:var(--good);font-weight:800">'+(MT.ans.indexOf(it)+1)+') '+esc(A(it))+'</small>':'')+'</span><span class="as">'+(a!==undefined?a+1:'')+'</span></button>'}).join('');
+  h+='</div><div class="col"><h3>Варианты</h3>';
+  const used=new Set(Object.values(MT.map));
+  h+=MT.ans.map((it,i)=>'<button data-a="'+i+'" class="'+(used.has(i)?'used':'')+'"><i>'+(i+1)+'</i><span>'+esc(A(it))+'</span></button>').join('');
+  h+='</div></div>';
+  if(MT.done){const right=MT.q.map(it=>MT.ans.indexOf(it)+1).join('');const ok=MT.q.every((it,i)=>MT.ans[MT.map[i]]===it);h+='<div class="fb '+(ok?'ok">Верно! Ответ: ':'no">Есть ошибки. Правильный ответ: ')+right+'</div>'}
+  const full=Object.keys(MT.map).length===MT.q.length;
+  h+='<div class="row">'+(MT.done?btn('pri','bNext','Дальше'):btn(full?'pri':'','bMtCheck','Проверить'))+'</div></div>';
+  return h;
+}
+function mtQ(i){if(MT.done)return;MT.sel=MT.sel===i?null:i;render()}
+function mtA(a){
+  if(MT.done)return;
+  let qi=MT.sel;if(qi===null){qi=MT.q.findIndex((_,i)=>MT.map[i]===undefined);if(qi<0)return}
+  for(const k in MT.map)if(MT.map[k]===a)delete MT.map[k];
+  MT.map[qi]=a;const nx=MT.q.findIndex((_,i)=>MT.map[i]===undefined);MT.sel=nx>=0?nx:null;render();
+}
+function mtCheck(){
+  if(Object.keys(MT.map).length<MT.q.length){toast('Сначала сопоставьте все строки');return}
+  MT.done=true;let all=true;MT.q.forEach((it,i)=>{const g=MT.ans[MT.map[i]]===it;if(!g)all=false;gradeItem(it,g)});
+  render();say(all?'Верно!':'Есть ошибки. Правильный ответ: '+MT.q.map(it=>MT.ans.indexOf(it)+1).join(', '));
+}
 function render(){
   renderChips();renderStats();
   const st=$('#stage');
   if(S.mode==='list'){renderList();return}
+  if(S.mode==='chrono'){st.innerHTML=renderChrono();bind();return}
+  if(S.mode==='match'){st.innerHTML=renderMatch();bind();return}
   if(!cur){st.innerHTML='<div class="card"><p class="q" style="font-size:1.2rem">'+(S.onlyBad?'Ошибок в этом разделе нет. Отлично!':'Здесь пока ничего нет.')+'</p></div>';return}
   let h='<div class="card">'+head()+'<div class="q">'+QH(cur)+'</div>';
   if(S.mode==='cards'){
     if(revealed)h+='<div class="ans"><small>Ответ</small>'+esc(A(cur))+'</div>';
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+btn('mic','bMic','Команда',MIC)+'</div>';
     h+=revealed?'<div class="row">'+btn('bad','bBad','Не помню')+btn('good','bGood','Помню')+'</div>':'<div class="row">'+btn('pri','bShow','Показать ответ')+'</div>';
-    h+='<div class="heard" id="heard"></div>';
+    h+='<div class="heard" id="heard"></div><p class="note">На телефоне: нажмите на вопрос, чтобы увидеть ответ; смахните вправо — «помню», влево — «не помню».</p>';
   }else if(S.mode==='test'){
     if(!answered)opts=distract(cur);
     h+='<div class="opts">'+opts.map((o,i)=>'<button data-o="'+i+'"'+(answered?(o===cur?' class="ok"':(o===answered?' class="no"':'')):'')+'><i>'+(i+1)+'</i><span>'+esc(A(o))+'</span></button>').join('')+'</div>';
@@ -337,6 +448,21 @@ function bind(){
   on('bHF',()=>{hf=!hf;if(hf)runHF();else{stopSay();try{rec&&rec.abort()}catch(e){}render()}});
   const inp=$('#inp');if(inp){inp.onkeydown=e=>{if(e.key==='Enter'){const v=inp.value.trim();if(v)fbSay(checkAns([v]))}};if(!answered&&!hf&&matchMedia('(pointer:fine)').matches)inp.focus()}
   document.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>choose(+b.dataset.o));
+  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>chTap(+b.dataset.c));
+  document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>mtQ(+b.dataset.q));
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>mtA(+b.dataset.a));
+  on('bMtCheck',mtCheck);
+  on('toDates',()=>{S.sec='dates';S.per='all';saveS();next()});
+  on('bChUndo',()=>{if(CH&&CH.pick.length){CH.pick.pop();render()}});
+  on('bChSay',()=>say('Расставьте по порядку. '+CH.items.map((it,i)=>(i+1)+'. '+chText(it)).join('. ')));
+  const card=document.querySelector('.card');
+  if(card&&S.mode==='cards'&&cur){
+    let x0=null,y0=0;
+    card.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+    card.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
+      if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5){if(!revealed){reveal();return}grade(dx>0);next()}});
+    const q=card.querySelector('.q');if(q&&!revealed){q.style.cursor='pointer';q.onclick=reveal}
+  }
 }
 function reveal(){revealed=true;render();say('Ответ: '+A(cur))}
 function choose(i){
@@ -413,7 +539,8 @@ function renderStats(){
   const a=pool(),now=Date.now();let done=0,work=0,due=0;
   for(const i of a){const r=P[i.id];if(!r)continue;if(r.b>=3)done++;else work++;if(r.d<=now)due++}
   const nw=a.length-done-work,pc=x=>a.length?(x/a.length*100).toFixed(1)+'%':'0';
-  $('#stats').innerHTML='<div>'+esc(sec().name)+(sec().yrs&&S.per!=='all'?', '+PERIODS.find(p=>p[0]===S.per)[1]:'')+': всего '+a.length+'. Сегодня ответов: '+session.n+', верно: '+session.ok+'.</div>'+
+  const td=DAYS[dayKey()]||0,sk=streak();
+  $('#stats').innerHTML='<div class="goal"><span>Сегодня: <b>'+td+'</b> из '+GOAL+(td>=GOAL?' — цель выполнена':'')+'</span><span>Серия: <b>'+sk+'</b> '+(sk%10===1&&sk%100!==11?'день':(sk%10>=2&&sk%10<=4&&(sk%100<10||sk%100>=20)?'дня':'дней'))+' подряд</span></div><div>'+esc(sec().name)+(sec().yrs&&S.per!=='all'?', '+PERIODS.find(p=>p[0]===S.per)[1]:'')+': всего '+a.length+'. Сегодня ответов: '+session.n+', верно: '+session.ok+'.</div>'+
   '<div class="bar"><span style="width:'+pc(done)+';background:var(--good)"></span><span style="width:'+pc(work)+';background:var(--gold)"></span></div>'+
   '<div class="legend"><span><i class="dot" style="background:var(--good)"></i>Выучено '+done+'</span><span><i class="dot" style="background:var(--gold)"></i>Учим '+work+'</span><span><i class="dot" style="background:var(--line)"></i>Новые '+nw+'</span><span>Пора повторить: '+due+'</span></div>'+
   '<div class="row" style="margin-top:.6rem"><button id="bReset" style="flex:0 1 auto;font-size:.8rem;min-height:2.2rem">'+(resetArm?'Точно стереть прогресс раздела?':'Сбросить прогресс раздела')+'</button></div>';
@@ -426,7 +553,8 @@ document.addEventListener('keydown',e=>{
   else if(S.mode==='voice'&&answered&&e.key==='Enter')next();
 });
 applyLook();
-cur=pick();render();
+if(S.mode==='chrono'||S.mode==='match'){next()}else{cur=pick();render()}
+try{if('serviceWorker' in navigator&&location.protocol==='https:'&&location.hostname.endsWith('github.io'))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 }
 </script>
 </body>
