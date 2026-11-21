@@ -45,6 +45,7 @@ button:active{transform:translateY(1px)}
 .navs{padding:.5rem 0 .3rem;border-bottom:2px solid var(--line)}
 .navh{margin:.4rem 0 .1rem;font-size:1.25rem;font-weight:800;color:var(--ink);line-height:1.2;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:.25em}
 #pers select{width:100%}
+#navDone{font-size:1.7rem!important;min-height:4.4rem!important;border-width:5px}
 .ctl button{font-size:.85rem}
 @media(max-width:600px){.brand{display:none}.top{justify-content:flex-end}}
 .card{border:2px solid var(--line);border-radius:1rem;padding:1rem 1.1rem 0;margin-top:.5rem}
@@ -93,6 +94,12 @@ body.neg .map,body.neg #zoomv img{filter:invert(1);background:#fff}
 .opts{display:grid;gap:.75rem;margin-top:.6rem}
 .opts button,.ch button,.mt button{text-align:left;font-size:1.05rem;min-height:3rem;display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .8rem;overflow-wrap:anywhere}
 .opts i,.mt i{font-style:normal;font-weight:800;color:var(--gold);flex:none;min-width:1.1em}
+.opts button.big,.opts button.mid,.opts button.lng{font-weight:800;min-height:4.2rem;align-items:center}
+.opts button.big{font-size:min(2.3rem,11vw)}
+.opts button.mid{font-size:min(1.8rem,8.3vw)}
+.opts button.lng{font-size:min(1.5rem,6.4vw)}
+.opts button.big span,.opts button.mid span,.opts button.lng span{overflow-wrap:normal;word-break:normal}
+.opts button.big .mark,.opts button.mid .mark,.opts button.lng .mark{font-size:.45em;white-space:normal}
 .fb{font-size:1.2rem;font-weight:800;margin-top:.7rem}
 .fb.ok{color:var(--good)}.fb.no{color:var(--bad)}
 input[type=text],input[type=search],select{width:100%;font-size:1.05rem;padding:.5rem .7rem;border:3px solid var(--line);border-radius:.6rem;background:var(--bg);min-height:3rem}
@@ -485,6 +492,8 @@ function head(){const s=secOf(cur);const pre=S.sec==='mix'?s.name+'. ':'';return
 const btn=(cls,id,txt,ic)=>'<button class="'+cls+(ic?' icon':'')+'" id="'+id+'">'+(ic||'')+txt+'</button>';
 const optText=()=>opts.map((o,i)=>'Вариант '+(i+1)+': '+A(o)).join('. ');
 const qText=()=>label()+(isMapQ(cur)?'':' '+Q(cur))+(S.mode==='test'&&opts.length?'. '+optText():'');
+// в вариантах-датах «гг.» лишнее: вопрос уже спрашивает про годы
+const optTxt=o=>{const a=A(o);return /^[\d\s,–-]+\s*гг?\.?$/.test(a)?a.replace(/\s*гг?\.?$/,''):a};
 const GN={1:'Забыл',2:'Трудно',3:'Хорошо',4:'Легко'};
 
 /* ---------- тест: варианты ---------- */
@@ -606,7 +615,7 @@ function render(){
   }else if(S.mode==='test'){
     if(!answered)opts=distract(cur);
     h+='<div class="opts">'+opts.map((o,i)=>{let cls='',mk='';if(answered){if(o===cur){cls='okc';mk='✓ Правильный ответ'}else if(o===answered){cls='noc';mk='✗ Ваш ответ'}}
-      return '<button data-o="'+i+'" class="'+cls+'"><i>'+(i+1)+'</i><span>'+(mk?'<span class="mark">'+mk+'</span>':'')+esc(A(o))+'</span></button>'}).join('')+'</div>';
+      return '<button data-o="'+i+'" class="'+cls+(()=>{const m=Math.max(...opts.map(x=>optTxt(x).length));return m<=6?' big':m<=10?' mid':m<=16?' lng':''})()+'"><i>'+(i+1)+'</i><span>'+(mk?'<span class="mark">'+mk+'</span>':'')+esc(optTxt(o)).replace(/[–-]/g,'\u2060–\u2060')+'</span></button>'}).join('')+'</div>';
     if(answered){h+='<div class="fb '+(answered===cur?'ok">✓ Верно':'no">✗ Неверно')+'</div>';if(cur.expl&&!S.rev)h+='<div class="ans long"><small>Объяснение</small>'+esc(cur.expl)+'</div>'}
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+(answered?'':btn('mic','bMic','Сказать номер',MIC))+'</div><div class="heard" id="heard"></div>';
     h+='<div class="dock"><div class="row">'+(answered?btn('pri','bNext','Дальше'):'')+'</div></div>';
