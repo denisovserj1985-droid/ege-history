@@ -58,6 +58,15 @@ button:active{transform:translateY(1px)}
 .q{font-weight:800;font-size:1.6rem;line-height:1.2;margin:.5rem 0 .7rem;letter-spacing:-.01em;overflow-wrap:anywhere}
 .mapw{display:block;position:relative;margin:.4rem 0}
 .map{display:block;width:100%;height:auto;background:#fff;border-radius:.6rem;border:2px solid var(--line)}
+.mapbtns{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.4rem}
+.mapbtns .zoom{margin:0;flex:0 0 auto;white-space:nowrap;padding:.35rem .7rem;font-size:.95rem;line-height:1.2}
+.map[data-zoom]{cursor:zoom-in}
+body.neg .map,body.neg #zoomv img{filter:invert(1);background:#fff}
+.hint{font-size:1.3rem;font-weight:800;color:var(--gold);border:3px solid var(--gold);border-radius:.8rem;padding:.5rem .7rem;margin:.4rem 0}
+.hint small{display:block;font-size:.75rem;color:var(--mute);font-weight:600}
+.dname{font-size:1.2em}.dgrid{display:grid;grid-template-columns:1fr;gap:.8rem;margin-top:.5rem}
+.dgrid figure{margin:0}.dgrid figcaption{font-size:.8em;margin-top:.25rem}.nomap{border:2px dashed var(--line);border-radius:.6rem;padding:1rem;font-size:.8em;color:var(--mute)}
+.mapwhy b{display:block;margin-top:.6rem}
 .zoom{display:block;width:fit-content;margin:.4rem 0 0 auto;font-size:1rem;font-weight:800;padding:.35rem .7rem;min-height:0;border-radius:.6rem;background:#000;color:#fff;border:2px solid #fff;cursor:pointer}
 .mapwhy{font-size:.8em;font-weight:600;color:var(--ink)}.mapwhy ul{margin:.3rem 0;padding-left:1.2em}.mapwhy .mk{display:block}
 #zoomv{position:fixed;inset:0;z-index:99;background:#000;display:flex;flex-direction:column}
@@ -183,15 +192,32 @@ const SECS=[
  {id:'terms',name:'Термины',src:D.terms,q:'Что это за термин?',r:'Что означает термин?'},
  {id:'maps',name:'Карты',q:'Какая это карта?',r:'Как узнать эту карту?'},
  {id:'mapsHow',name:'Как узнать карту',q:'Как узнать эту карту?',r:'Какая это карта?'},
+ {id:'mapsDiff',name:'Похожие карты',q:'Как отличить эти карты?',r:'Как отличить эти карты?',ref:1},
  {id:'m_rus',name:'Русский',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
  {id:'m_hist',name:'История',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
  {id:'m_soc',name:'Обществознание',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'}];
 const GRP=s=>s.grp||'h';
 const PERIODS=[['all','Все',-1,9999],['p1','IX–XII вв.',0,1240],['p2','XIII–XV вв.',1240,1505],['p3','XVI–XVII вв.',1505,1689],['p4','XVIII в.',1689,1801],['p5','XIX в. – 1917',1801,1917],['p6','1917–1945',1917,1946],['p7','1946–1991',1946,1992],['p8','с 1992',1992,9999]];
 
-const ITEMS={};
 const MAP_NO=[0,39]; // в «Мегашпоре» нет карт для «Славянских племён» и «Отечественной войны 1812 г.»
-const mapImg=src=>'<div class="mapw"><img src="'+src+'" alt="Карта" class="map" loading="lazy"><button type="button" class="zoom" data-zoom="'+src+'">Увеличить</button></div>';
+const ITEMS={};
+// Группы похожих карт: в тесте неверные варианты берутся из той же группы, раздел «Похожие карты» строится по ним
+const MAP_GRP=[
+ ['Русско-турецкие войны и походы на юг',/Русско-турецкая|Крымские походы|Азовские|Крымская война/],
+ ['Русско-шведские войны',/Русско-шведская|Северная война/],
+ ['Иран и Кавказ',/Русско-иранская|Персидский|Кавказская/],
+ ['Древняя Русь',/племена|Олега|Святослава|раздробленность/],
+ ['Русь и Орда, Новгород (XIII–XV вв.)',/Калке|Батыя|Невская|Ледовое|Орды|Куликовская|Угре|Новгород Ивана/],
+ ['Литва, Польша, Смута (XVI–XVII вв.)',/Ливонская|Смутное|Смоленская|Русско-польская|Чигиринские/],
+ ['Восстания',/Разина|Пугачева/],
+ ['Сибирь, Поволжье, Средняя Азия',/Поволжья|Ермака|Восточной Сибири|Средней Азии|Экономика/],
+ ['Европа в XVIII в.',/Семилетняя|Речи Посполитой|Суворова/],
+ ['Наполеоновские войны',/Антифранцузские|1812|Заграничные/],
+ ['Войны конца XIX – XX в.',/Русско-японская|Первая мировая|Гражданская|Советско-финская|Холодная/],
+ ['Великая Отечественная и 1945 г.',/Великая Отечественная|Московская|Сталинградская|Курская|Блокада|Багратион|Висло-Одерская|Советско-японская/]];
+const mapGrp=t=>{const g=MAP_GRP.find(g=>g[1].test(t));return g?g[0]:''};
+const mapSrc=i=>MAP_NO.includes(i)?'':'maps/'+String(i).padStart(2,'0')+'.jpg';
+const mapImg=src=>'<div class="mapw"><img src="'+src+'" alt="Карта" class="map" data-zoom="'+src+'"><div class="mapbtns"><button type="button" class="zoom" data-neg="1">Негатив</button><button type="button" class="zoom" data-zoom="'+src+'">Увеличить</button></div></div>';
 const isMapQ=i=>!!(i&&i.img&&!i.how&&!S.rev);
 for(const s of SECS){
   if(s.grp==='m'){ITEMS[s.id]=[];continue}
@@ -202,13 +228,22 @@ for(const s of SECS){
       const ex=m.hints.concat(m.notes);
       if(ex.length){parts.push(ex.join('. '));html+='<ul>'+ex.map(h=>'<li>'+esc(h)+'</li>').join('')+'</ul>'}
       const y=(m.title.match(/\d{3,4}/)||[])[0];
-      return {id:'maps:'+i,key:m.title,val:parts.join('. '),valHtml:html,year:y?+y:null,img:MAP_NO.includes(i)?'':'maps/'+String(i).padStart(2,'0')+'.jpg'};
+      return {id:'maps:'+i,key:m.title,val:parts.join('. '),valHtml:html,year:y?+y:null,img:mapSrc(i),grp:mapGrp(m.title),markers:m.markers||'',hint1:(m.hints[0]||m.notes[0]||'')};
     });
+  }else if(s.id==='mapsDiff'){
+    ITEMS.mapsDiff=MAP_GRP.map(([name],gi)=>{
+      const ms=D.maps.map((m,i)=>({m,i})).filter(x=>mapGrp(x.m.title)===name);
+      const q='<div class="dname">'+esc(name)+'</div><div class="dgrid">'+ms.map(x=>'<figure>'+(mapSrc(x.i)?'<img src="'+mapSrc(x.i)+'" alt="Карта" class="map" loading="lazy" data-zoom="'+mapSrc(x.i)+'">':'<div class="nomap">нет карты</div>')+'<figcaption>'+esc(x.m.title)+'</figcaption></figure>').join('')+'</div>';
+      const pts=x=>(x.m.hints.length?x.m.hints:x.m.notes);
+      const a='<div class="mapwhy">'+ms.map(x=>'<b>'+esc(x.m.title)+'</b>'+(x.m.markers?'<span class="mk">Маркеры: '+esc(x.m.markers)+'</span>':'')+'<ul>'+pts(x).map(h=>'<li>'+esc(h)+'</li>').join('')+'</ul>').join('')+'</div>';
+      const txt=ms.map(x=>x.m.title+': '+pts(x).join('; ')).join('. ');
+      return {id:'mapsDiff:'+gi,key:txt,val:name,year:null,qHtml:q,ansHtml:a,n:ms.length};
+    }).filter(x=>x.n>1);
   }else if(s.id==='mapsHow'){
     ITEMS.mapsHow=D.maps.map((m,i)=>{
       const pts=m.hints.length?m.hints:m.notes;
       const y=(m.title.match(/\d{3,4}/)||[])[0];
-      return {id:'mapsHow:'+i,key:pts.map((h,k)=>(k+1)+') '+h.replace(/[.;]\s*$/,'')).join('; ')+'.',val:m.title,year:y?+y:null,how:1,img:MAP_NO.includes(i)?'':'maps/'+String(i).padStart(2,'0')+'.jpg'};
+      return {id:'mapsHow:'+i,key:pts.map((h,k)=>(k+1)+') '+h.replace(/[.;]\s*$/,'')).join('; ')+'.',val:m.title,year:y?+y:null,how:1,img:mapSrc(i),grp:mapGrp(m.title)};
     });
   }else{
     ITEMS[s.id]=s.src.map(([k,v],i)=>{const y=(k.match(/\d{3,4}/)||[])[0];return {id:s.id+':'+i,key:k,val:v,year:y?+y:null}});
@@ -224,7 +259,7 @@ function loadM(m){if(!m)return;M=m;for(const k of ['rus','hist','soc'])ITEMS['m_
 loadM(M);
 fetch('mistakes.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;const fresh=JSON.stringify(m)!==JSON.stringify(M);loadM(m);store.set('ege_m',m);if(fresh&&GRP(sec())==='m')next();else renderChips()}).catch(()=>{});
 const sec=()=>SECS.find(x=>x.id===S.sec);
-let cur=null, revealed=false, answered=false, recent=[], session={n:0,ok:0}, hf=false, opts=[];
+let hintOn=false, cur=null, revealed=false, answered=false, recent=[], session={n:0,ok:0}, hf=false, opts=[];
 
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3500)}
 
@@ -347,9 +382,9 @@ function grade(good){
   recent.push(cur.id);if(recent.length>4)recent.shift();
 }
 const Q=i=>S.rev?i.key:i.val, A=i=>S.rev?i.val:i.key;
-const QH=i=>i.how&&!S.rev?esc(i.val)+(i.img?mapImg(i.img):''):isMapQ(i)?mapImg(i.img):S.rev?esc(i.key):(i.valHtml||esc(i.val));
+const QH=i=>i.qHtml?i.qHtml:i.how&&!S.rev?esc(i.val)+(i.img?mapImg(i.img):''):isMapQ(i)?mapImg(i.img):S.rev?esc(i.key):(i.valHtml||esc(i.val));
 const label=()=>S.rev?sec().r:sec().q;
-const ansH=i=>isMapQ(i)?esc(i.key)+'<div class="mapwhy">'+i.valHtml+'</div>':i.img&&S.rev?'<div class="mapwhy">'+i.valHtml+'</div>'+mapImg(i.img):esc(A(i)).replace(/;\s*(\d+\))/g,';<br>$1')+(!S.rev&&i.expl?'<span class="ex">Почему: '+esc(i.expl)+'</span>':'');
+const ansH=i=>i.ansHtml?i.ansHtml:isMapQ(i)?esc(i.key)+'<div class="mapwhy">'+i.valHtml+'</div>':i.img&&S.rev?'<div class="mapwhy">'+i.valHtml+'</div>'+mapImg(i.img):esc(A(i)).replace(/;\s*(\d+\))/g,';<br>$1')+(!S.rev&&i.expl?'<span class="ex">Почему: '+esc(i.expl)+'</span>':'');
 const ansS=i=>isMapQ(i)?i.key+'. '+i.val:A(i)+(!S.rev&&i.expl?'. '+i.expl:'');
 function boxName(i){const r=P[i.id];if(!r)return 'новое';return ['учим','учим','почти','выучено','выучено','выучено','выучено'][r.b]}
 
@@ -360,6 +395,8 @@ function distract(item){
   if(!S.rev&&item.year!==null&&sec().yrs){cand=all.filter(i=>i.year!==null).sort((x,y)=>Math.abs(x.year-item.year)-Math.abs(y.year-item.year)).slice(0,sec().id==='reign'?8:14)}
   else cand=all;
   const out=[],seen=new Set([A(item)]);
+  if(item.grp){const same=all.filter(i=>i.grp===item.grp);while(out.length<3&&same.length){const c=same.splice(Math.floor(Math.random()*same.length),1)[0];if(!seen.has(A(c))){seen.add(A(c));out.push(c)}}
+    const y=item.year;if(y!==null&&out.length<3)cand=all.filter(i=>i.year!==null&&!out.includes(i)).sort((a,b)=>Math.abs(a.year-y)-Math.abs(b.year-y)).slice(0,6)}
   while(out.length<3&&cand.length){const j=Math.floor(Math.random()*cand.length);const c=cand.splice(j,1)[0];if(!seen.has(A(c))){seen.add(A(c));out.push(c)}}
   const o=out.concat([item]);for(let i=o.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]]}
   return o;
@@ -368,7 +405,7 @@ function distract(item){
 /* ---------- render ---------- */
 function head(){return '<div class="lab"><span>'+esc(cur.src?cur.src:label())+'</span><span><b>'+boxName(cur)+'</b> · '+esc(sec().name)+'</span></div>'}
 function btn(cls,id,txt,ic){return '<button class="'+cls+(ic?' icon':'')+'" id="'+id+'">'+(ic||'')+txt+'</button>'}
-function next(){stopSay();revealed=false;answered=false;
+function next(){stopSay();revealed=false;answered=false;hintOn=false;
   if(S.mode==='chrono'){newChrono();render();if(CH&&S.auto)say('Расставьте по порядку. '+CH.items.map((it,i)=>(i+1)+'. '+chText(it)).join('. '));return}
   if(S.mode==='match'){newMatch();render();if(MT&&S.auto)say(mtText());return}
   cur=pick();render();if(cur&&S.auto&&S.mode!=='list'&&!hf)say(qText())}
@@ -450,11 +487,15 @@ function mtCheck(){
 function render(){
   renderChips();renderStats();
   const st=$('#stage');
+  if(sec().ref&&!['cards','list'].includes(S.mode))S.mode='cards';
   if(S.mode==='list'){renderList();return}
   if(S.mode==='chrono'){st.innerHTML=renderChrono();bind();return}
   if(S.mode==='match'){st.innerHTML=renderMatch();bind();return}
   if(!cur){st.innerHTML='<div class="card"><p class="q" style="font-size:1.2rem">'+(S.onlyBad?'Ошибок в этом разделе нет. Отлично!':GRP(sec())==='m'?'По этому предмету ошибок пока нет. Они появятся здесь, как только папа пришлёт скриншоты.':'Здесь пока ничего нет.')+'</p></div>';return}
   let h='<div class="card">'+head()+'<div class="q'+(Q(cur).length>90&&!isMapQ(cur)?' long':'')+'">'+QH(cur)+'</div>';
+  const canHint=isMapQ(cur)&&!revealed&&!answered;
+  if(canHint&&hintOn)h+='<div class="hint"><small>Найдите на карте</small>'+esc(cur.markers||cur.hint1)+'</div>';
+  if(canHint&&!hintOn&&(cur.markers||cur.hint1))h+='<div class="row">'+btn('','bHint',cur.markers?'Подсказка: какие подписи искать':'Подсказка')+'</div>';
   if(S.mode==='cards'){
     if(revealed)h+='<div class="ans'+(A(cur).length>70?' long':'')+'"><small>Ответ</small>'+ansH(cur)+'</div>';
     h+='<div class="row">'+btn('','bSay','Прочитать',SPK)+btn('mic','bMic','Команда',MIC)+'</div>';
@@ -479,6 +520,7 @@ function bind(){
   const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f};
   on('bSay',()=>say(revealed||(answered&&S.mode!=='test')?label()+' '+Q(cur)+'. Ответ: '+A(cur):qText()));
   on('bShow',reveal);
+  on('bHint',()=>{hintOn=true;render();sayAuto('Найдите на карте: '+(cur.markers||cur.hint1))});
   on('bGood',()=>{grade(true);next()});
   on('bBad',()=>{grade(false);next()});
   on('bNext',next);
@@ -511,10 +553,11 @@ function bind(){
   }
 }
 let zs=1;
+document.body.classList.toggle('neg',!!S.neg);
 function openZoom(src){
   let v=document.getElementById('zoomv');if(v)v.remove();
   v=document.createElement('div');v.id='zoomv';
-  v.innerHTML='<div class="zbar"><button id="zMinus">−</button><button id="zPlus">+</button><button id="zClose" aria-label="Закрыть">✕</button></div><div class="zbox"><img src="'+src+'" alt="Карта"></div>';
+  v.innerHTML='<div class="zbar"><button id="zNeg" data-neg="1">◐</button><button id="zMinus">−</button><button id="zPlus">+</button><button id="zClose" aria-label="Закрыть">✕</button></div><div class="zbox"><img src="'+src+'" alt="Карта"></div>';
   document.body.appendChild(v);zs=1;const im=v.querySelector('img');const box=v.querySelector('.zbox');
   const set=k=>{const cx=(box.scrollLeft+box.clientWidth/2)/im.offsetWidth,cy=(box.scrollTop+box.clientHeight/2)/im.offsetHeight;zs=Math.min(4,Math.max(1,k));im.style.width=(box.clientWidth*zs)+'px';box.scrollLeft=cx*im.offsetWidth-box.clientWidth/2;box.scrollTop=cy*im.offsetHeight-box.clientHeight/2};
   set(1);
@@ -523,7 +566,8 @@ function openZoom(src){
   v.querySelector('#zClose').onclick=()=>v.remove();
   im.ondblclick=()=>set(zs>=3.9?1:zs*2);
 }
-document.addEventListener('click',e=>{const z=e.target.closest&&e.target.closest('[data-zoom]');if(z){e.preventDefault();e.stopPropagation();openZoom(z.dataset.zoom)}},true);
+document.addEventListener('click',e=>{const ng=e.target.closest&&e.target.closest('[data-neg]');if(ng){e.preventDefault();e.stopPropagation();S.neg=!S.neg;saveS();document.body.classList.toggle('neg',!!S.neg);return}
+  const z=e.target.closest&&e.target.closest('[data-zoom]');if(z){e.preventDefault();e.stopPropagation();openZoom(z.dataset.zoom)}},true);
 function reveal(){revealed=true;render();sayAuto('Ответ: '+ansS(cur))}
 function choose(i){
   if(answered)return;const o=opts[i];answered=o;grade(o===cur);render();
@@ -557,7 +601,7 @@ function command(t,soft){
 }
 function runHF(){
   if(!hf)return;
-  cur=pick();answered=false;revealed=false;render();if(!cur){hf=false;return}
+  cur=pick();answered=false;revealed=false;hintOn=false;render();if(!cur){hf=false;return}
   let tries=0;
   const ask=()=>say(label()+' '+Q(cur),()=>{if(hf)hear()});
   const hear=()=>listen((a,err)=>{
