@@ -290,7 +290,7 @@ for(const s of SECS){
 function rebuildMix(){ITEMS.mix=SECS.filter(s=>s.id!=='mix'&&!s.ref).flatMap(s=>ITEMS[s.id])}
 rebuildMix();
 // Шпаргалка по обществознанию: soc.json, разделы добавляются сами
-function loadSoc(d,G='s'){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:G};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r,ref:x.ref?1:0});ITEMS[x.id]=x.items.map(([k,v,e],i)=>{const g=(k.match(/^([А-ЯЁ][^:?]{4,45}):/)||[])[1];return {id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null,grp:g||''}});{const n={};for(const i of ITEMS[x.id])if(i.grp)n[i.grp]=(n[i.grp]||0)+1;for(const i of ITEMS[x.id])if(i.grp&&n[i.grp]<2)i.grp='';else if(i.grp)i.sg=1}}rebuildMix()}
+function loadSoc(d,G='s'){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:G};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r,ref:x.ref?1:0});ITEMS[x.id]=x.items.map(([k,v,e],i)=>{const g=(k.match(/^([А-ЯЁ][^:?]{4,45}):/)||[])[1];const om=k.match(/[А-Яа-яЁё\-]+(?:\/[А-Яа-яЁё\-]+)+/);const op=om&&om[0].split('/').some(w=>w.toLowerCase()===v.toLowerCase())?om[0].split('/').map(w=>w.toLowerCase()===v.toLowerCase()?v:w.toLowerCase()):null;return {id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null,grp:g||'',opts:op}});{const n={};for(const i of ITEMS[x.id])if(i.grp)n[i.grp]=(n[i.grp]||0)+1;for(const i of ITEMS[x.id])if(i.grp&&n[i.grp]<2)i.grp='';else if(i.grp)i.sg=1}}rebuildMix()}
 loadSoc(store.get('ege_soc',null));loadSoc(store.get('ege_rus',null),'r');
 
 /* ---------- состояние ---------- */
@@ -514,6 +514,7 @@ const GN={1:'Забыл',2:'Трудно',3:'Хорошо',4:'Легко'};
 
 /* ---------- тест: варианты ---------- */
 function distract(item){
+  if(item.opts&&!S.rev){const o=item.opts.filter(w=>w.toLowerCase()!==item.key.toLowerCase()).slice(0,3).map((w,j)=>({id:item.id+'#'+j,sec:item.sec,key:w,val:item.val,year:null}));if(o.length)return shuffle(o.concat([item]))}
   const all=(ITEMS[item.sec]||ITEMS[S.sec]).filter(i=>A(i)!==A(item)&&Q(i)!==Q(item));
   const sy=secOf(item).yrs;
   let cand=(!S.rev&&item.year!==null&&sy)?all.filter(i=>i.year!==null).sort((x,y)=>Math.abs(x.year-item.year)-Math.abs(y.year-item.year)).slice(0,item.sec==='reign'?8:14):all.slice();
