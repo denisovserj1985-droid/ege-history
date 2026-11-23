@@ -290,8 +290,8 @@ for(const s of SECS){
 function rebuildMix(){ITEMS.mix=SECS.filter(s=>s.id!=='mix'&&!s.ref).flatMap(s=>ITEMS[s.id])}
 rebuildMix();
 // Шпаргалка по обществознанию: soc.json, разделы добавляются сами
-function loadSoc(d){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:'s'};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r});ITEMS[x.id]=x.items.map(([k,v,e],i)=>{const g=(k.match(/^([А-ЯЁ][^:?]{4,45}):/)||[])[1];return {id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null,grp:g||''}});{const n={};for(const i of ITEMS[x.id])if(i.grp)n[i.grp]=(n[i.grp]||0)+1;for(const i of ITEMS[x.id])if(i.grp&&n[i.grp]<2)i.grp='';else if(i.grp)i.sg=1}}rebuildMix()}
-loadSoc(store.get('ege_soc',null));
+function loadSoc(d,G='s'){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:G};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r,ref:x.ref?1:0});ITEMS[x.id]=x.items.map(([k,v,e],i)=>{const g=(k.match(/^([А-ЯЁ][^:?]{4,45}):/)||[])[1];return {id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null,grp:g||''}});{const n={};for(const i of ITEMS[x.id])if(i.grp)n[i.grp]=(n[i.grp]||0)+1;for(const i of ITEMS[x.id])if(i.grp&&n[i.grp]<2)i.grp='';else if(i.grp)i.sg=1}}rebuildMix()}
+loadSoc(store.get('ege_soc',null));loadSoc(store.get('ege_rus',null),'r');
 
 /* ---------- состояние ---------- */
 let S=Object.assign({sec:'reign',per:'all',mode:'cards',rev:false,font:24,theme:'bw',lh:1.4,ls:0,ff:'golos',grades:4,goal:30,pause:3,rate:1,auto:false,unmute:true,voice:'',onlyBad:false},store.get('ege_s',{}));
@@ -745,10 +745,10 @@ function lstop(){if(lrun.on){lrun.id++;lrun.on=false;stopSay()}const b=$('#lplay
 function renderList(){
   const st=$('#stage');const prev=$('#srch')?$('#srch').value:'';
   st.innerHTML='<div class="card"><input type="search" id="srch" aria-label="Поиск" placeholder="Поиск: слово, имя или год" value="'+esc(prev)+'"><button id="lplay" class="pri">▶ Слушать всё подряд</button><div id="lres" class="list"></div></div>';
-  let a=[];const lineT=i=>i.id.startsWith('m:')||i.how||i.sec.startsWith('s_')?i.val+'. '+i.key:i.key+'. '+i.val;
+  let a=[];const lineT=i=>i.id.startsWith('m:')||i.how||/^[sr]_/.test(i.sec)?i.val+'. '+i.key:i.key+'. '+i.val;
   const draw=()=>{
     lstop();const q=norm($('#srch').value);const all=pool();const num=new Map(all.map((x,k)=>[x.id,k+1]));a=all.filter(i=>!q||norm(i.key+' '+i.val).includes(q));
-    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?', показаны первые 150':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:')||i.how||i.sec.startsWith('s_');return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(m?i.key:i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
+    $('#lres').innerHTML='<p class="note">Найдено: '+a.length+(a.length>150?', показаны первые 150':'')+'. Нажмите на строку, чтобы прослушать.</p>'+a.slice(0,150).map(i=>{const m=i.id.startsWith('m:')||i.how||/^[sr]_/.test(i.sec);return '<button data-id="'+i.id+'"><b>'+num.get(i.id)+'. '+esc(m?i.val:i.key)+'</b>'+(i.img?'<span class="mapw"><img src="'+i.img+'" alt="Карта" class="map" loading="lazy"><span class="zoom" data-zoom="'+i.img+'">Увеличить</span></span>'+esc(m?i.key:i.val):' — '+esc(m?i.key:i.val))+'</button>'}).join('');
     document.querySelectorAll('#lres button').forEach(b=>b.onclick=()=>{const k=a.findIndex(x=>x.id===b.dataset.id);if(lrun.on)lplay(k);else{lstop();say(lineT(a[k]))}});
   };
   // «Слушать всё подряд»: читает строки по очереди, текущая обведена; повторное нажатие — стоп
@@ -764,8 +764,8 @@ function renderList(){
 function renderChips(){
   navSummary();
   const nM=['m_rus','m_hist','m_soc'].reduce((a,k)=>a+ITEMS[k].length,0),g=GRP(sec());
-  $('#grp').innerHTML=[['h','Шпаргалка по истории',''],...(SECS.some(s=>s.grp==='s')?[['s','Шпаргалка по обществознанию','']]:[]),['m','Мои ошибки',nM],['x','Всё вперемешку','']].map(([k,n,c])=>'<button data-gr="'+k+'"'+(g===k?' class="on"':'')+'>'+n+(c!==''?'<span class="n">'+c+'</span>':'')+'</button>').join('');
-  document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const k=b.dataset.gr;if(g===k)return;S.sec=k==='m'?(['m_rus','m_hist','m_soc'].find(x=>ITEMS[x].length)||'m_rus'):k==='x'?'mix':k==='s'?SECS.find(s=>s.grp==='s').id:'reign';S.per='all';recent=[];hf=false;saveS();next()});
+  $('#grp').innerHTML=[['h','Шпаргалка по истории',''],...(SECS.some(s=>s.grp==='s')?[['s','Шпаргалка по обществознанию','']]:[]),...(SECS.some(s=>s.grp==='r')?[['r','Шпаргалка по русскому','']]:[]),['m','Мои ошибки',nM],['x','Всё вперемешку','']].map(([k,n,c])=>'<button data-gr="'+k+'"'+(g===k?' class="on"':'')+'>'+n+(c!==''?'<span class="n">'+c+'</span>':'')+'</button>').join('');
+  document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const k=b.dataset.gr;if(g===k)return;S.sec=k==='m'?(['m_rus','m_hist','m_soc'].find(x=>ITEMS[x].length)||'m_rus'):k==='x'?'mix':k==='s'||k==='r'?SECS.find(s=>s.grp===k).id:'reign';S.per='all';recent=[];hf=false;saveS();next()});
   $('#secs').innerHTML=g==='x'?'':SECS.filter(s=>GRP(s)===g).map(s=>'<button data-s="'+s.id+'"'+(s.id===S.sec?' class="on"':'')+'>'+s.name+'<span class="n">'+ITEMS[s.id].length+'</span></button>').join('');
   $('#persBox').hidden=!sec().yrs;$('#secsBox').hidden=g==='x';
   $('#pers').innerHTML=sec().yrs?'<select id="perSel" aria-label="Период">'+PERIODS.map(p=>'<option value="'+p[0]+'"'+(p[0]===S.per?' selected':'')+'>'+(p[0]==='all'?'Все периоды':p[1])+'</option>').join('')+'</select>':'';
@@ -832,6 +832,7 @@ document.addEventListener('keydown',e=>{
 
 applyLook();
 if(S.mode==='chrono'||S.mode==='match')next();else{cur=pick();render()}
+fetch('rus.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(!d)return;const fresh=JSON.stringify(d)!==JSON.stringify(store.get('ege_rus',null));store.set('ege_rus',d);loadSoc(d,'r');if(fresh&&GRP(sec())==='r')next();else renderChips()}).catch(()=>{});
 fetch('soc.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(!d)return;const fresh=JSON.stringify(d)!==JSON.stringify(store.get('ege_soc',null));store.set('ege_soc',d);loadSoc(d);if(fresh&&GRP(sec())==='s')next();else renderChips()}).catch(()=>{});
 fetch('mistakes.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;const fresh=JSON.stringify(m)!==JSON.stringify(M);loadM(m);store.set('ege_m',m);if(fresh&&GRP(sec())!=='h')next();else renderChips()}).catch(()=>{});
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&location.hostname.endsWith('github.io'))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
