@@ -149,6 +149,43 @@ input[type=text],input[type=search],select{width:100%;font-size:1.05rem;padding:
 .seg button.on{border:3px solid var(--gold);color:var(--gold);font-weight:800}
 .chk{display:flex;align-items:center;gap:.7rem;margin:.5rem 0}
 .chk input{width:1.5rem;height:1.5rem;accent-color:var(--gold)}
+.cov-h{font-weight:800;margin:.8rem 0 .3rem;font-size:.95rem}
+.cov{list-style:none;padding:0;margin:0;display:grid;gap:.4rem;font-size:.85rem}
+.cov li{border:2px solid var(--line);border-radius:.6rem;padding:.35rem .6rem}
+.cov li.c2{border:3px solid var(--good)}.cov li.c1{border:3px dashed var(--gold)}.cov li.c0{border-style:dotted}
+.cov .st{display:block;font-weight:700}.cov li.c2 .st{color:var(--good)}.cov li.c1 .st{color:var(--gold)}.cov li.c0 .st{color:var(--mute)}
+.pts{color:var(--mute);font-weight:600;font-size:.85em}
+.sheet .in.wide{max-width:900px}
+.timer{font-weight:800;font-size:1.4rem;color:var(--gold)}.timer.low{color:var(--bad)}
+.xt{border:3px solid var(--line);border-radius:1rem;padding:.8rem 1rem;margin:1rem 0}
+.xt.half{border:4px dashed var(--gold)}.xt.half .mark{color:var(--gold)}
+.xt h4{margin:0 0 .4rem;font-size:1.25rem;font-weight:800}
+.xq{font-weight:600;margin:.5rem 0}
+.xl{list-style:none;padding:0;margin:.4rem 0;display:grid;gap:.5rem}
+.xl li{overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+.xl b{color:var(--gold)}
+.xt .cols{display:grid;gap:.8rem}
+@media(min-width:800px){.xt .cols{grid-template-columns:1fr 1fr}}
+.xr{display:block;font-weight:800;font-size:.85em;color:var(--mute)}.xr.ok{color:var(--good)}.xr.no{color:var(--bad)}
+.xa{display:block;margin-top:.7rem;font-weight:700}.xa small{color:var(--mute);font-weight:600}
+.xa input{margin-top:.3rem;font-size:1.5rem;font-weight:800;letter-spacing:.12em}
+.trow{border:2px solid var(--line);border-radius:.6rem;padding:.4rem .7rem;margin:.5rem 0;display:grid;gap:.35rem}
+.trow small{display:block;color:var(--mute);font-size:.75rem;font-weight:600}
+.gap{color:var(--gold)}
+.xres{border:4px solid var(--gold);border-radius:1rem;padding:.8rem 1rem;margin:1rem 0}
+.big{font-size:2.2rem;font-weight:800;color:var(--gold);line-height:1.1}
+.prow{margin:.5rem 0}
+.kv{display:grid;gap:.5rem;margin-top:1rem}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.35rem}
+.days div{border:2px dashed var(--line);border-radius:.5rem;text-align:center;padding:.2rem 0;font-weight:800;font-size:.9rem}
+.days div.on{border-style:solid}.days div.full{border:3px solid var(--good)}
+.days small{display:block;font-weight:600;font-size:.6rem;color:var(--mute);line-height:1.15}
+.hard{padding-left:1.1em;font-size:.85rem}.hard li{margin:.4rem 0}
+textarea{width:100%;min-height:7rem;font:inherit;font-size:.75rem;color:inherit;background:var(--bg);border:3px solid var(--line);border-radius:.6rem;padding:.5rem;margin-top:.6rem;word-break:break-all}
+.stats .row button{font-size:1rem}
+.xend{margin:1.5rem 0 1rem}
+.sheet header{flex-wrap:wrap}
+[hidden]{display:none!important}
 .toast{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);background:var(--bg);color:var(--ink);border:3px solid var(--gold);padding:.6rem 1rem;border-radius:.7rem;font-size:.9rem;max-width:92vw;z-index:30;display:none}
 </style>
 </head>
@@ -165,7 +202,7 @@ input[type=text],input[type=search],select{width:100%;font-size:1.05rem;padding:
   <button id="navBtn" class="navbar" aria-expanded="false"></button>
   <div id="nav" hidden>
   <section class="navs"><h3 class="navh">Что учим</h3><nav id="grp" class="chips" aria-label="Что учим"></nav></section>
-  <section class="navs" id="secsBox"><h3 class="navh">Раздел</h3><nav id="secs" class="chips" aria-label="Раздел"></nav></section>
+  <section class="navs" id="secsBox"><h3 class="navh">Раздел</h3><nav id="secs" class="chips" aria-label="Раздел"></nav><div id="egeMap" hidden></div></section>
   <section class="navs"><h3 class="navh">Как учить</h3>
   <nav id="modes" class="chips" aria-label="Режим">
     <button data-m="cards">Карточки</button>
@@ -210,8 +247,30 @@ input[type=text],input[type=search],select{width:100%;font-size:1.05rem;padding:
     <div class="row"><button id="micTest" class="icon"></button></div>
     <div class="heard" id="micRes"></div>
     <p class="note">Голосовые команды: «ответ», «забыл», «трудно», «хорошо», «легко», «повтори», «дальше», «крупнее», «мельче», «стоп».</p>
+    <h3>Перенести прогресс на другое устройство</h3>
+    <p class="note">Сохраните прогресс в файл (или код) здесь и загрузите на другом телефоне или компьютере. Прогресс объединяется: по каждой карточке остаётся последний ответ, ничего не теряется.</p>
+    <div class="row"><button id="bExport">Сохранить в файл</button><button id="bImportF">Загрузить из файла</button></div>
+    <div class="row"><button id="bCode">Показать код</button><button id="bImportC">Вставить код</button></div>
+    <input type="file" id="fImp" accept=".json,.txt,application/json,text/plain" hidden>
+    <textarea id="tCode" hidden aria-label="Код прогресса" autocomplete="off" spellcheck="false"></textarea>
+    <div class="row" id="codeRow" hidden><button id="bCodeCopy">Скопировать код</button><button id="bCodeLoad" class="pri">Загрузить этот код</button></div>
+    <div class="row" id="undoRow" hidden><button id="bUndoImp">Вернуть как было до загрузки</button></div>
+    <h3>Для родителя</h3>
+    <div class="row"><button id="bParent2">Открыть экран для родителя</button></div>
     <h3>Прогресс</h3>
     <div class="row"><button id="bReset"></button></div>
+  </div>
+</div>
+<div id="exam" class="sheet" hidden role="dialog" aria-label="Пробник ЕГЭ">
+  <div class="in wide">
+    <header><span id="xTimer" class="timer" aria-live="off"></span><button id="xClose" class="pri" style="min-height:3.4rem!important;font-size:1.3rem!important;border-width:5px">Закрыть</button></header>
+    <div id="xBody"></div>
+  </div>
+</div>
+<div id="parent" class="sheet" hidden role="dialog" aria-label="Для родителя">
+  <div class="in">
+    <header><h2>Для родителя</h2><button id="pClose" class="pri" style="min-height:3.4rem!important;font-size:1.4rem!important;border-width:5px">Готово</button></header>
+    <div id="pBody"></div>
   </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -240,6 +299,21 @@ const SECS=[
  {id:'m_hist',name:'История',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
  {id:'m_soc',name:'Обществознание',grp:'m',q:'Вопрос',r:'К какому вопросу этот ответ?'},
  {id:'mix',name:'Всё вперемешку',grp:'x',q:'Вопрос',r:'Вопрос'}];
+/* Задания ЕГЭ по истории 2027 (спецификация ФИПИ): разделы-подборки из тех же карточек (id те же — прогресс общий) */
+const EGE=[
+ ['e1','1','№1 Даты','match',2,'Соответствие «событие — год»',1],
+ ['e2','2','№2 Хронология','chrono',1,'Три события по порядку',1],
+ ['e3','3','№3 Процессы и факты','match',2,'Соответствие: тренируем термины'],
+ ['e4','4','№4 Таблица','test',3,'Таблица «место — событие — время»: тренируем даты и правителей',1],
+ ['e5','5','№5 Деятели','match',2,'Соответствие «событие — участник»'],
+ ['e7','7','№7 Культура','test',2,'Памятники культуры и их авторы'],
+ ['e8','8','№8 и №18 Великая Отечественная','test',1,'Даты, люди и карты войны'],
+ ['e9','9–12','№9–12 Карты','cards',5,'Узнать карту, год, города, суждения'],
+ ['e20','20','№20 Понятия','cards',2,'Объяснить смысл понятия']];
+for(const [id,n,name,mode,pts,what,yrs] of EGE)SECS.push({id,grp:'e',virt:1,ege:n,name,mode,pts,what,yrs,q:'Вопрос',r:'Вопрос'});
+SECS.push({id:'m_exam',name:'Из пробника',grp:'m',virt:1,q:'Вопрос',r:'Вопрос'});
+// все 22 задания: что тренирует тренажёр
+const EGE_ALL=[['1','Даты (соответствие)',2,2,'e1'],['2','Хронология',1,2,'e2'],['3','Процессы и факты',2,1,'e3'],['4','Таблица',3,1,'e4'],['5','Деятели',2,2,'e5'],['6','Исторический источник',2,0],['7','Культура',2,2,'e7'],['8','Изображение (ВОВ)',1,1,'e8'],['9–10','Карта',2,2,'e9'],['11','Карта и текст',1,1,'e9'],['12','Суждения по карте',2,2,'e9'],['13–15','Источники (часть 2)',6,0],['16–17','Изображения (часть 2)',4,0],['18','Источники о ВОВ',3,1,'e8'],['19','Причины и следствия',3,0],['20','Понятия',2,1,'e20'],['21','Сравнение',3,0],['22','Аргументация',2,0]];
 const GRP=s=>s.grp||'h';
 const secById=id=>SECS.find(x=>x.id===id);
 const PERIODS=[['all','Все',-1,9999],['p1','IX–XII вв.',0,1240],['p2','XIII–XV вв.',1240,1505],['p3','XVI–XVII вв.',1505,1689],['p4','XVIII в.',1689,1801],['p5','XIX в. – 1917',1801,1917],['p6','1917–1945',1917,1946],['p7','1946–1991',1946,1992],['p8','с 1992',1992,9999]];
@@ -262,6 +336,7 @@ const mapSrc=i=>MAP_NO.includes(i)?'':'maps/'+String(i).padStart(2,'0')+'.jpg';
 const mapImg=src=>'<div class="mapw"><img src="'+src+'" alt="Карта" class="map" data-zoom="'+src+'"><div class="mapbtns"><button type="button" class="zoom" data-neg="1">Негатив</button><button type="button" class="zoom" data-zoom="'+src+'">Увеличить</button></div></div>';
 const ITEMS={mix:[]};
 for(const s of SECS){
+  if(s.virt){ITEMS[s.id]=[];continue}
   if(s.grp==='m'||s.grp==='x'){if(!ITEMS[s.id])ITEMS[s.id]=[];continue}
   if(s.id==='maps'){
     ITEMS.maps=D.maps.map((m,i)=>{
@@ -289,7 +364,7 @@ for(const s of SECS){
     });
   }else ITEMS[s.id]=s.src.map(([k,v],i)=>{const y=(k.match(/\d{3,4}/)||[])[0];return {id:s.id+':'+i,sec:s.id,key:k,val:v,year:y?+y:null}});
 }
-function rebuildMix(){ITEMS.mix=SECS.filter(s=>s.id!=='mix'&&!s.ref).flatMap(s=>ITEMS[s.id])}
+function rebuildMix(){ITEMS.mix=SECS.filter(s=>s.id!=='mix'&&!s.ref&&!s.virt).flatMap(s=>ITEMS[s.id])}
 rebuildMix();
 // Шпаргалка по обществознанию: soc.json, разделы добавляются сами
 function loadSoc(d,G='s'){if(!d||!d.secs)return;for(const x of d.secs){let s=secById(x.id);if(!s){s={id:x.id,grp:G};SECS.splice(SECS.findIndex(y=>y.grp==='m'),0,s)}Object.assign(s,{name:x.name,q:x.q,r:x.r,ref:x.ref?1:0});ITEMS[x.id]=x.items.map(([k,v,e],i)=>{const g=(k.match(/^([А-ЯЁ][^:?]{4,45}):/)||[])[1];const om=k.match(/[А-Яа-яЁё\-]+(?:\/[А-Яа-яЁё\-]+)+/);const op=om&&om[0].split('/').some(w=>w.toLowerCase()===v.toLowerCase())?om[0].split('/').map(w=>w.toLowerCase()===v.toLowerCase()?v:w.toLowerCase()):null;return {id:x.id+':'+i,sec:x.id,key:v,val:k,expl:e||'',year:null,grp:g||'',opts:op}});{const n={};for(const i of ITEMS[x.id])if(i.grp)n[i.grp]=(n[i.grp]||0)+1;for(const i of ITEMS[x.id])if(i.grp&&n[i.grp]<2)i.grp='';else if(i.grp)i.sg=1}}rebuildMix()}
@@ -306,8 +381,23 @@ let hintOn=false,cur=null,revealed=false,answered=false,recent=[],session={n:0,o
 function toast(t,ms){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',ms||4000)}
 
 let M=store.get('ege_m',null);
-function loadM(m){if(!m)return;M=m;for(const k of ['rus','hist','soc'])ITEMS['m_'+k]=(m[k]||[]).map(c=>({id:'m:'+c.id,sec:'m_'+k,key:c.a,val:c.q,expl:c.e||'',src:c.src||'',year:null}));rebuildMix()}
-loadM(M);
+function loadM(m){if(!m)return;M=m;for(const k of ['rus','hist','soc'])ITEMS['m_'+k]=(m[k]||[]).map(c=>({id:'m:'+c.id,sec:'m_'+k,key:c.a,val:c.q,expl:c.e||'',src:c.src||'',year:null}));rebuildMix();buildVirt()}
+// ошибки из пробника: id карточек в ege_pe
+let PE=store.get('ege_pe',[]);
+const RX_CUL=/архитектор|зодчий|художник|живописец|иконописец|писател|поэт|композитор|скульптор|режисс[её]р|первопечатник|драматург|баснописец|летописец|актёр|актриса|балерин|публицист|философ|историк,/i;
+const RX_CULD=/университет|книгопечат|театр|академи|летопис|«Слово|собор|храм|газет|журнал|библиотек|музе[йя]|гимнази|лице[йя]|«Апостол»/i;
+const RX_CULT=/барокко|классицизм|модерн|авангард|передвижн|реализм|ампир|шатров|изограф|летопис|пролеткульт|шестидесятник|самиздат|искусств|романтизм|сентиментализм|парсун|житие|былин|зодчеств|фреск|мозаик|иконопис/i;
+const RX_WW=/194[1-5]|Великой Отечественной|Великую Отечественную|Сталинград|блокад|Брестск|партизан|фронтом|таран|Паулюс|Курск|битв\S* за Москву|Берлин|Рейхстаг/i;
+function buildVirt(){
+  const ww=i=>i.year!==null&&i.year>=1941&&i.year<=1945;
+  Object.assign(ITEMS,{e1:ITEMS.dates,e2:ITEMS.dates,e3:ITEMS.terms,e4:ITEMS.dates.concat(ITEMS.reign),e5:ITEMS.persons.concat(ITEMS.reign),
+    e7:ITEMS.persons.filter(i=>RX_CUL.test(i.val)).concat(ITEMS.dates.filter(i=>RX_CULD.test(i.val)),ITEMS.terms.filter(i=>RX_CULT.test(i.key))),
+    e8:ITEMS.dates.filter(ww).concat(ITEMS.persons.filter(i=>RX_WW.test(i.val)),ITEMS.terms.filter(i=>/194[1-5]/.test(i.val)),ITEMS.maps.filter(i=>i.grp==='Великая Отечественная и 1945 г.')),
+    e9:ITEMS.maps.concat(ITEMS.mapsHow),e20:ITEMS.terms});
+  const byId=new Map(ITEMS.mix.map(i=>[i.id,i]));
+  ITEMS.m_exam=PE.map(id=>byId.get(id)).filter(Boolean);
+}
+loadM(M);buildVirt();
 
 /* ---------- FSRS-4.5 (формулы открытого алгоритма Free Spaced Repetition Scheduler) ---------- */
 const W=[0.4872,1.4003,3.7145,13.8206,5.1618,1.2298,0.8975,0.031,1.6474,0.1367,1.0461,2.1072,0.0793,0.3246,1.587,0.2272,2.8755];
@@ -492,6 +582,7 @@ function gradeItem(it,g){
   P[it.id]=schedule(P[it.id],g,now);saveP();
   session.n++;if(g>1)session.ok++;
   const k=dayKey();DAYS[k]=(DAYS[k]||0)+1;store.set('ege_days',DAYS);
+  const ur=document.getElementById('undoRow');if(ur)ur.hidden=true; // после новых ответов откат импорта стёр бы их
   if(DAYS[k]===S.goal)setTimeout(()=>{toast('Дневная цель выполнена: '+S.goal+' ответов!');sayAuto('Отлично! Дневная цель выполнена.')},900);
 }
 function grade(g){if(!cur)return;gradeItem(cur,g);recent.push(cur.id);if(recent.length>4)recent.shift()}
@@ -506,7 +597,7 @@ const secOf=i=>secById(i.sec)||sec();
 const label=(i=cur)=>{const s=secOf(i);return S.rev?s.r:s.q};
 const ansH=i=>i.ansHtml?i.ansHtml:isMapQ(i)?esc(i.key)+'<div class="mapwhy">'+i.valHtml+'</div>':i.img&&S.rev?'<div class="mapwhy">'+i.valHtml+'</div>'+mapImg(i.img):esc(A(i)).replace(/;\s*(\d+\))/g,';<br>$1')+(!S.rev&&i.expl?'<span class="ex">Почему: '+esc(i.expl)+'</span>':'');
 const ansS=i=>isMapQ(i)?i.key+'. '+i.val:A(i)+(!S.rev&&i.expl?'. '+i.expl:'');
-function head(){const s=secOf(cur);const pre=S.sec==='mix'?s.name+'. ':'';return '<div class="lab">'+esc(pre+(cur.src||label()))+'</div>'}
+function head(){const s=secOf(cur);const pre=S.sec==='mix'?s.name+'. ':sec().ege?'Задание '+sec().ege+' · ':S.sec==='m_exam'?s.name+'. ':'';return '<div class="lab">'+esc(pre+(cur.src||label()))+'</div>'}
 const btn=(cls,id,txt,ic)=>'<button class="'+cls+(ic?' icon':'')+'" id="'+id+'">'+(ic||'')+txt+'</button>';
 const optText=()=>opts.map((o,i)=>'Вариант '+(i+1)+': '+A(o)).join('. ');
 const qText=()=>label()+(isMapQ(cur)?'':' '+Q(cur))+(S.mode==='test'&&opts.length?'. '+optText():'');
@@ -517,7 +608,10 @@ const GN={1:'Забыл',2:'Трудно',3:'Хорошо',4:'Легко'};
 /* ---------- тест: варианты ---------- */
 function distract(item){
   if(item.opts&&!S.rev){const o=item.opts.filter(w=>w.toLowerCase()!==item.key.toLowerCase()).slice(0,3).map((w,j)=>({id:item.id+'#'+j,sec:item.sec,key:w,val:item.val,year:null}));if(o.length)return shuffle(o.concat([item]))}
-  const all=(ITEMS[item.sec]||ITEMS[S.sec]).filter(i=>A(i)!==A(item)&&Q(i)!==Q(item));
+  let src=ITEMS[item.sec]||ITEMS[S.sec];
+  // в подборке (например, «Культура») неверные варианты — из той же подборки, иначе ответ угадывается
+  if(sec().virt){const v=ITEMS[S.sec].filter(i=>i.sec===item.sec);if(v.length>=8)src=v}
+  const all=src.filter(i=>A(i)!==A(item)&&Q(i)!==Q(item));
   const sy=secOf(item).yrs;
   let cand=(!S.rev&&item.year!==null&&sy)?all.filter(i=>i.year!==null).sort((x,y)=>Math.abs(x.year-item.year)-Math.abs(y.year-item.year)).slice(0,item.sec==='reign'?8:14):all.slice();
   const out=[],seen=new Set([A(item)]);
@@ -537,7 +631,7 @@ function newChrono(){
   if(!chronoOK()){CH=null;return}
   let a=pool().filter(i=>i.year!==null);if(S.sec==='mix')a=a.filter(i=>i.sec==='dates');
   const due=a.filter(i=>!P[i.id]||P[i.id].due<=Date.now());
-  CH={items:sample(due.length>=8?due:a,4,i=>i.year),pick:[],done:false};
+  CH={items:sample(due.length>=8?due:a,S.sec==='e2'?3:4,i=>i.year),pick:[],done:false};
   if(CH.items.length<3)CH=null;
 }
 const chSorted=()=>CH.items.slice().sort((x,y)=>x.year-y.year);
@@ -569,10 +663,12 @@ function chTap(i){
 /* ---------- соответствие ---------- */
 const LET=['А','Б','В','Г'];
 function newMatch(){
-  const a=pool();if(a.length<4){MT=null;return}
+  let a=pool();if(a.length<4){MT=null;return}
+  let base=S.sec==='mix'?ITEMS.mix:ITEMS[S.sec];
+  // в подборках «по заданию» строки берём из одного исходного раздела, чтобы ответы были однородны
+  if(sec().virt){const k=a[Math.floor(Math.random()*a.length)].sec;a=a.filter(i=>i.sec===k);base=ITEMS[S.sec].filter(i=>i.sec===k);if(a.length<4){MT=null;return}}
   const due=a.filter(i=>!P[i.id]||P[i.id].due<=Date.now());
   const q=sample(due.length>=8?due:a,4,i=>A(i));
-  const base=S.sec==='mix'?ITEMS.mix:ITEMS[S.sec];
   const extra=sample(base.filter(i=>!q.some(x=>A(x)===A(i))),2,i=>A(i));
   MT={q,ans:shuffle(q.concat(extra)),map:{},sel:0,done:false};
 }
@@ -622,7 +718,7 @@ function render(){lstop();
   if(S.mode==='list'){renderList();return}
   if(S.mode==='chrono'){st.innerHTML=renderChrono();bind();return}
   if(S.mode==='match'){st.innerHTML=renderMatch();bind();return}
-  if(!cur){st.innerHTML='<div class="card"><p class="q long">'+(S.onlyBad?'Ошибок здесь нет. Отлично!':GRP(sec())==='m'?'По этому предмету ошибок пока нет. Они появятся здесь, когда папа пришлёт скриншоты.':'Здесь пока ничего нет.')+'</p><div class="dock"></div></div>';return}
+  if(!cur){st.innerHTML='<div class="card"><p class="q long">'+(S.onlyBad?'Ошибок здесь нет. Отлично!':S.sec==='m_exam'?'Ошибок из пробника пока нет. Пройдите пробник — ошибки появятся здесь.':GRP(sec())==='m'?'По этому предмету ошибок пока нет. Они появятся здесь, когда папа пришлёт скриншоты.':'Здесь пока ничего нет.')+'</p><div class="dock"></div></div>';return}
   const qs=Q(cur);
   let h='<div class="card">'+head()+'<div class="q'+(qs.length>90&&!isMapQ(cur)&&!cur.qHtml?' long':'')+(S.mode==='cards'&&!revealed&&!cur.img&&!cur.qHtml?' tap':'')+'">'+QH(cur)+'</div>';
   const canHint=isMapQ(cur)&&!revealed&&!answered;
@@ -766,18 +862,24 @@ function renderList(){
 }
 function renderChips(){
   navSummary();
-  const nM=['m_rus','m_hist','m_soc'].reduce((a,k)=>a+ITEMS[k].length,0),g=GRP(sec());
-  $('#grp').innerHTML=[['h','Шпаргалка по истории',''],...(SECS.some(s=>s.grp==='s')?[['s','Шпаргалка по обществознанию','']]:[]),...(SECS.some(s=>s.grp==='r')?[['r','Шпаргалка по русскому','']]:[]),['m','Мои ошибки',nM],['x','Всё вперемешку','']].map(([k,n,c])=>'<button data-gr="'+k+'"'+(g===k?' class="on"':'')+'>'+n+(c!==''?'<span class="n">'+c+'</span>':'')+'</button>').join('');
-  document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const k=b.dataset.gr;if(g===k)return;S.sec=k==='m'?(['m_rus','m_hist','m_soc'].find(x=>ITEMS[x].length)||'m_rus'):k==='x'?'mix':k==='s'||k==='r'?SECS.find(s=>s.grp===k).id:'reign';S.per='all';recent=[];hf=false;saveS();next()});
+  const nM=['m_rus','m_hist','m_soc','m_exam'].reduce((a,k)=>a+ITEMS[k].length,0),g=GRP(sec());
+  $('#grp').innerHTML=[['h','Шпаргалка по истории',''],['e','Задания ЕГЭ по истории',''],...(SECS.some(s=>s.grp==='s')?[['s','Шпаргалка по обществознанию','']]:[]),...(SECS.some(s=>s.grp==='r')?[['r','Шпаргалка по русскому','']]:[]),['m','Мои ошибки',nM],['x','Всё вперемешку','']].map(([k,n,c])=>'<button data-gr="'+k+'"'+(g===k?' class="on"':'')+'>'+n+(c!==''?'<span class="n">'+c+'</span>':'')+'</button>').join('');
+  document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const k=b.dataset.gr;if(g===k)return;goSec(k==='m'?(['m_rus','m_hist','m_soc','m_exam'].find(x=>ITEMS[x].length)||'m_rus'):k==='x'?'mix':k==='e'?'e1':k==='s'||k==='r'?SECS.find(s=>s.grp===k).id:'reign')});
   $('#secs').innerHTML=g==='x'?'':SECS.filter(s=>GRP(s)===g).map(s=>'<button data-s="'+s.id+'"'+(s.id===S.sec?' class="on"':'')+'>'+s.name+'<span class="n">'+ITEMS[s.id].length+'</span></button>').join('');
+  $('#egeMap').hidden=g!=='e';
+  if(g==='e')$('#egeMap').innerHTML='<p class="cov-h">Что тренирует тренажёр из 22 заданий ЕГЭ 2027 (43 первичных балла)</p><ul class="cov">'+EGE_ALL.map(([n,t,p,c,id])=>'<li class="c'+c+'"><b>№'+n+'</b> '+t+' <span class="pts">· '+p+' '+plural(p,'балл','балла','баллов')+'</span><span class="st">'+(c===2?'✓ есть':c===1?'◐ частично':'✗ нет')+(id?' — раздел «'+esc(secById(id).name)+'»':'')+'</span></li>').join('')+'</ul><p class="note">Часть 1 — задания 1–12 (20 баллов), часть 2 — развёрнутые ответы 13–22 (23 балла). Задания 6 и 13–22 требуют текста источника или рассуждений — их тренируйте по сборникам ФИПИ, а факты для них — здесь.</p>';
   $('#persBox').hidden=!sec().yrs;$('#secsBox').hidden=g==='x';
   $('#pers').innerHTML=sec().yrs?'<select id="perSel" aria-label="Период">'+PERIODS.map(p=>'<option value="'+p[0]+'"'+(p[0]===S.per?' selected':'')+'>'+(p[0]==='all'?'Все периоды':p[1])+'</option>').join('')+'</select>':'';
   $('#badBtn').classList.toggle('on',S.onlyBad);
-  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{S.sec=b.dataset.s;S.per='all';recent=[];hf=false;saveS();next()});
+  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>goSec(b.dataset.s));
   const ps=$('#perSel');if(ps)ps.onchange=()=>{S.per=ps.value;recent=[];saveS();next()};
   document.querySelectorAll('[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===S.mode));
   $('#revBtn').classList.toggle('on',S.rev);
 }
+// переход в раздел; у разделов «по заданию ЕГЭ» сразу включается подходящий режим
+function goSec(id){const was=S.sec;S.sec=id;S.per='all';recent=[];hf=false;const s=sec();
+  if(s.ege){S.mode=s.mode;S.rev=s.id==='e20'}else if(was==='e20')S.rev=false;
+  saveS();if(S.mode==='list'){stopSay();render()}else next()}
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;hf=false;saveS();if(S.mode==='list'){stopSay();render()}else next()});
 $('#revBtn').onclick=()=>{S.rev=!S.rev;saveS();next()};
 $('#badBtn').onclick=()=>{S.onlyBad=!S.onlyBad;saveS();next()};
@@ -790,8 +892,248 @@ function renderStats(){
   '<div>'+esc(sec().name)+(sec().yrs&&S.per!=='all'?', '+PERIODS.find(p=>p[0]===S.per)[1]:'')+': всего '+a.length+'. За это занятие ответов: '+session.n+', верно: '+session.ok+'.</div>'+
   '<div class="bar"><span style="width:'+pc(done)+';background:var(--good)"></span><span style="width:'+pc(work)+';background:var(--gold)"></span></div>'+
   '<div class="legend"><span><i class="dot" style="background:var(--good)"></i>Выучено '+done+'</span><span><i class="dot" style="background:var(--gold)"></i>Учим '+work+'</span><span><i class="dot" style="border:2px solid var(--line)"></i>Новые '+nw+'</span><span>Пора повторить: '+due+'</span></div>'+
-  '<p class="note">«Выучено» — помнишь не меньше недели. Один пропущенный день в неделю серию не сбрасывает.</p>';
+  '<p class="note">«Выучено» — помнишь не меньше недели. Один пропущенный день в неделю серию не сбрасывает.</p>'+
+  '<div class="row"><button id="bExam" class="pri">'+(EX&&!EX.done?'Пробник ЕГЭ (идёт)':'Пробник ЕГЭ')+'</button><button id="bParent">Для родителя</button></div>';
+  $('#bExam').onclick=xOpen;$('#bParent').onclick=pOpen;
 }
+
+/* ---------- пробник «как на экзамене»: часть 1 КИМ ЕГЭ 2027 (спецификация и демоверсия ФИПИ) ---------- */
+let EX=store.get('ege_ex',null),EXH=store.get('ege_exh',[]),xTick=0,xArm=false;
+const XMIN=40; // примерное время по спецификации ФИПИ на задания 1–5, 7–10, 12
+const XLET=['А','Б','В','Г','Д','Е'];
+const saveEX=()=>store.set('ege_ex',EX);
+const cap=s=>{s=String(s).trim().replace(/[,;]\s*$/,'');return s.charAt(0).toUpperCase()+s.slice(1)};
+const yr1=k=>/^\d{3,4}$/.test(String(k).trim());
+const W45={1941:'сорок первом',1942:'сорок втором',1943:'сорок третьем',1944:'сорок четвёртом',1945:'сорок пятом'};
+const fmtD=t=>{const d=new Date(t);return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')};
+function xMatchTask(n,pts,title,rows,rowT,optT,others){
+  const right=rows.map(optT),seen=new Set(right);
+  let opts=right.concat(sample(others.filter(i=>!seen.has(optT(i))),2,optT).map(optT));
+  opts=/^\d{3,4} г\.$/.test(opts[0])?opts.sort((a,b)=>parseInt(a)-parseInt(b)):shuffle(opts);
+  return {n,pts,type:'match',title,rows:rows.map(rowT),opts,key:rows.map(r=>opts.indexOf(optT(r))+1).join(''),ids:rows.map(r=>r.id),ans:''};
+}
+function mapPts(i){const m=D.maps[+i.id.split(':')[1]];return m.hints.concat(m.notes).map(s=>s.trim().replace(/[.;]\s*$/,'')).filter(s=>s.length>8)}
+function xMake(){
+  const dd=ITEMS.dates.filter(i=>yr1(i.key)&&i.year!==null);
+  // №1 события — годы
+  const r1=sample(dd,4,i=>i.key);
+  const t1=xMatchTask('1',2,'Установите соответствие между событиями и годами: к каждой позиции первого столбца подберите соответствующую позицию из второго столбца.',r1,i=>cap(i.val),i=>i.key+' г.',dd);
+  // №2 хронология из трёх событий
+  const r2=sample(dd.filter(i=>!r1.includes(i)),3,i=>i.key),o2=r2.slice().sort((a,b)=>a.year-b.year);
+  const t2={n:'2',pts:1,type:'seq',title:'Расположите в хронологической последовательности исторические события. Запишите цифры, которыми обозначены события, в правильной последовательности.',opts:r2.map(i=>cap(i.val)),key:o2.map(i=>r2.indexOf(i)+1).join(''),ids:r2.map(i=>i.id),ans:''};
+  // №3 термины
+  const tt=ITEMS.terms.filter(i=>i.val.length<=200&&!norm(i.val).includes(norm(i.key).slice(0,5)));
+  const t3=xMatchTask('3',2,'Установите соответствие между определениями и терминами: к каждому определению подберите термин.',sample(tt,4,i=>i.key),i=>cap(i.val),i=>i.key,tt);
+  // №4 таблица «событие — год — правитель»: правитель определяется по годам правления однозначно
+  const RG=ITEMS.reign.map(i=>{const y=(i.key.match(/\d{3,4}/g)||[]).map(Number);return {name:i.val,a:y[0],b:/соврем/.test(i.key)?9999:(y[1]||y[0])}}).filter(x=>x.name!=='Семибоярщина');
+  const rulerOf=y=>{const r=RG.filter(x=>y>x.a&&y<x.b);return r.length===1?r[0].name:null};
+  const rows4=[],uY=new Set(),uR=new Set();
+  for(const i of shuffle(dd.filter(i=>i.year>1462&&!r1.includes(i)&&!r2.includes(i)))){const r=rulerOf(i.year);if(!r||uY.has(i.key)||uR.has(r))continue;uY.add(i.key);uR.add(r);rows4.push({id:i.id,ev:cap(i.val),yr:i.key,ru:r});if(rows4.length===3)break}
+  const blanks=[[0,'yr'],[0,'ru'],[1,'ev'],[1,'ru'],[2,'ev'],[2,'yr']];
+  const right4=blanks.map(([r,f])=>rows4[r][f]);
+  // лишнее событие не должно совпадать по тексту ни с одним событием тех же лет (например, «русско-турецкая война»)
+  const busy=new Set(dd.filter(i=>uY.has(i.key)).map(i=>cap(i.val)));
+  const ex4=[sample(dd.filter(i=>i.year>1462&&!uY.has(i.key)),1,i=>i.key)[0].key,sample(RG.filter(x=>x.a>1462&&!uR.has(x.name)),1,x=>x.name)[0].name,cap(sample(dd.filter(i=>!uY.has(i.key)&&!busy.has(cap(i.val))),1,i=>i.val)[0].val)];
+  const o4=shuffle(right4.concat(ex4));
+  const t4={n:'4',pts:3,type:'table',title:'Заполните пустые ячейки таблицы, используя приведённый ниже список пропущенных элементов: для каждого пропуска, обозначенного буквой, выберите номер нужного элемента.',rows:rows4,blanks,opts:o4,key:right4.map(x=>o4.indexOf(x)+1).join(''),ids:rows4.map(r=>r.id),ans:''};
+  // №5 деятели
+  const pp=ITEMS.persons.filter(i=>i.val.length<=170);
+  const t5=xMatchTask('5',2,'Установите соответствие между описаниями и историческими деятелями: к каждому описанию подберите деятеля.',sample(pp,4,i=>i.key),i=>cap(i.val),i=>i.key,pp);
+  // №7 культура
+  const cc=ITEMS.persons.filter(i=>RX_CUL.test(i.val)&&i.val.length<=170);
+  const t7=xMatchTask('7',2,'Установите соответствие между деятелями культуры и их характеристиками: к каждой позиции первого столбца подберите соответствующую позицию из второго столбца.',sample(cc,4,i=>i.key),i=>i.key,i=>cap(i.val),cc);
+  // №8 Великая Отечественная: год словом, как в демоверсии
+  const ww=ITEMS.dates.filter(i=>{const y=String(i.key).match(/\d{4}/g);return y&&y.length===1&&W45[y[0]]&&!/[–-]/.test(i.key)});
+  const i8=sample(ww,1,i=>i.id)[0],y8=i8.key.match(/\d{4}/)[0];
+  const t8={n:'8',pts:1,type:'word',title:'Событие: «'+cap(i8.val)+'». Заполните пропуск в предложении: «Это событие произошло в тысяча девятьсот ______ году». Ответ запишите словом (сочетанием слов).',key:W45[y8],ids:[i8.id],ans:''};
+  // №9, 10, 12 — одна схема
+  const MM=ITEMS.maps.filter(i=>i.img&&i.year&&i.markers&&mapPts(i).length>=3&&!/Гражданская/.test(i.key));
+  const m=sample(MM,1,i=>i.id)[0];
+  const near=MM.filter(i=>i.grp!==m.grp).sort((a,b)=>Math.abs(a.year-m.year)-Math.abs(b.year-m.year)).slice(0,4);
+  const oth=near[Math.floor(Math.random()*near.length)];
+  const t9={n:'9',pts:1,type:'num',img:m.img,title:'Рассмотрите схему. Укажите год, когда начались события, отражённые на схеме. Ответ запишите цифрами.',key:String(m.year),ids:[m.id],ans:''};
+  const mk=shuffle([m.markers].concat(sample(ITEMS.maps.filter(i=>i.markers&&i.markers!==m.markers&&i.grp!==m.grp),3,i=>i.markers).map(i=>i.markers)));
+  const t10={n:'10',pts:1,type:'one',img:m.img,title:'По той же схеме: какие подписи есть на схеме? Запишите цифру, которой обозначен верный вариант.',opts:mk,key:String(mk.indexOf(m.markers)+1),ids:[m.id],ans:''};
+  const tr=sample(mapPts(m),3,s=>s),fl=sample(mapPts(oth).filter(s=>!tr.includes(s)),3,s=>s),st=shuffle(tr.concat(fl));
+  const t12={n:'12',pts:2,type:'multi',img:m.img,title:'По той же схеме: какие суждения, относящиеся к схеме, являются верными? Запишите цифры, под которыми они указаны.',opts:st,key:tr.map(s=>st.indexOf(s)+1).sort().join(''),ids:[m.id],ans:''};
+  const tasks=[t1,t2,t3,t4,t5,t7,t8,t9,t10,t12];
+  return {t0:Date.now(),max:tasks.reduce((a,t)=>a+t.pts,0),tasks};
+}
+const xClean=t=>String(t.ans||'').replace(/\s+/g,'');
+function xScore(t){
+  const a=xClean(t);
+  if(t.type==='word')return norm(t.ans||'')===norm(t.key)?1:0;
+  if(t.type==='num'||t.type==='one'||t.type==='seq')return a===t.key?1:0;
+  if(t.type==='multi'){const A=new Set(a),K=new Set(t.key);let ex=0,mi=0;for(const c of A)if(!K.has(c))ex++;for(const c of K)if(!A.has(c))mi++;
+    return ex+mi===0?2:(ex+mi===1||(ex===1&&mi===1))?1:0}
+  if(a.length>t.key.length)return 0; // лишние символы — 0 баллов, как у ФИПИ
+  let bad=0;for(let i=0;i<t.key.length;i++)if(a[i]!==t.key[i])bad++;
+  if(t.type==='table')return bad===0?3:bad===1?2:bad<=3?1:0;
+  return bad===0?2:bad===1?1:0;
+}
+function xRowOK(t,k){const a=xClean(t);
+  // для повторения карточек смотрим каждую строку отдельно (баллы при этом — строго по ФИПИ)
+  if(t.type==='match')return a[k]===t.key[k];
+  if(t.type==='table')return t.blanks.every(([r],j)=>r!==k||a[j]===t.key[j]);
+  return xScore(t)===t.pts}
+function xStart(){EX=xMake();xArm=false;saveEX();xRender();$('#exam').scrollTop=0;toast('Пробник начат: '+XMIN+' минут')}
+function xFinish(timeout){
+  if(!EX||EX.done)return;clearInterval(xTick);
+  // время вышло, а ответов нет совсем (начал и бросил) — пробник просто отбрасываем, карточки не трогаем
+  if(timeout&&EX.tasks.every(t=>!xClean(t))){EX=null;store.set('ege_ex',null);xRender();renderStats();return}
+  let sc=0;const res={};
+  // при истечении времени пустые задания в «Мои ошибки» не идут: их не пытались решать
+  for(const t of EX.tasks){t.sc=xScore(t);sc+=t.sc;if(timeout&&!xClean(t))continue;t.ids.forEach((id,k)=>{res[id]=res[id]!==false&&xRowOK(t,k)})}
+  let nErr=0;
+  for(const id in res){const it=findItem(id);if(!it)continue;gradeItem(it,res[id]?3:1);if(!res[id]){nErr++;PE=PE.filter(x=>x!==id);PE.unshift(id)}}
+  PE=PE.slice(0,400);store.set('ege_pe',PE);buildVirt();
+  Object.assign(EX,{done:Date.now(),sc,nErr,timeout:!!timeout});
+  EXH.unshift({t:EX.done,sc,max:EX.max,min:Math.max(1,Math.round((EX.done-EX.t0)/6e4))});EXH=EXH.slice(0,50);store.set('ege_exh',EXH);
+  saveEX();xRender();renderChips();renderStats();$('#exam').scrollTop=0;
+  if(timeout)toast('Время вышло — пробник проверен',6000);
+  sayAuto('Пробник проверен. '+sc+' '+plural(sc,'балл','балла','баллов')+' из '+EX.max);
+}
+const xHelp=t=>{const a=xClean(t);return a?'Получилось: '+a.split('').map((c,i)=>(XLET[i]||'лишняя')+' — '+c).join(', '):''};
+function xTaskText(t){
+  let s='Задание '+t.n+'. '+t.title+' ';
+  const ov=()=>' Варианты: '+t.opts.map((o,i)=>(i+1)+': '+o).join('. ');
+  if(t.type==='match')s+=t.rows.map((r,i)=>XLET[i]+': '+r).join('. ')+'.'+ov();
+  else if(t.type==='table')s+=t.rows.map((r,k)=>'Строка '+(k+1)+'. '+['ev','yr','ru'].map(f=>{const j=t.blanks.findIndex(([rr,ff])=>rr===k&&ff===f);return j>=0?'пропуск '+XLET[j]:r[f]}).join(', ')).join('. ')+'.'+ov();
+  else if(t.opts)s+=t.opts.map((o,i)=>(i+1)+': '+o).join('. ');
+  return s;
+}
+function xTaskHTML(t,k){
+  const done=!!EX.done,a=xClean(t),li=(o,i,x)=>'<li><b>'+(i+1)+')</b> '+esc(o)+(x||'')+'</li>';
+  let h='<section class="xt'+(done?(t.sc===t.pts?' okc':t.sc>0?' half':' noc'):'')+'"><h4>Задание '+t.n+' <span class="pts">· '+t.pts+' '+plural(t.pts,'балл','балла','баллов')+'</span></h4>';
+  if(done)h+='<div class="mark">'+(t.sc===t.pts?'✓ Верно':t.sc>0?'◐ Частично':'✗ Неверно')+': '+t.sc+' из '+t.pts+'</div>';
+  if(t.img)h+=mapImg(t.img);
+  h+='<p class="xq">'+esc(t.title)+'</p>';
+  if(t.type==='match')h+='<div class="cols"><ul class="xl">'+t.rows.map((r,i)=>'<li><b>'+XLET[i]+')</b> '+esc(r)+(done?(a[i]===t.key[i]&&a.length<=t.key.length?'<span class="xr ok">✓ '+t.key[i]+'</span>':'<span class="xr no">✗ Правильно: '+t.key[i]+') '+esc(t.opts[+t.key[i]-1])+'</span>'):'')+'</li>').join('')+'</ul><ul class="xl">'+t.opts.map((o,i)=>li(o,i)).join('')+'</ul></div>';
+  else if(t.type==='table'){
+    h+=t.rows.map((r,k2)=>'<div class="trow">'+[['ev','Событие'],['yr','Год'],['ru','Правитель России в это время']].map(([f,nm])=>{const j=t.blanks.findIndex(([rr,ff])=>rr===k2&&ff===f);return '<div><small>'+nm+'</small>'+(j<0?esc(r[f]):'<b class="gap">('+XLET[j]+')'+(done?' '+(a[j]===t.key[j]?'✓ ':'✗ ')+t.key[j]+') '+esc(r[f]):' ____')+'</b>')+'</div>'}).join('')+'</div>').join('');
+    h+='<p class="xq">Пропущенные элементы:</p><ul class="xl">'+t.opts.map((o,i)=>li(o,i)).join('')+'</ul>';
+  }else if(t.opts)h+='<ul class="xl">'+t.opts.map((o,i)=>li(o,i,done&&t.type==='multi'?(t.key.includes(String(i+1))?'<span class="xr ok">✓ верное</span>':'<span class="xr">неверное</span>'):'')).join('')+'</ul>';
+  const hint={match:'4 цифры подряд — под буквами А, Б, В, Г',table:'6 цифр подряд — под буквами А–Е',seq:'3 цифры подряд',multi:'цифры подряд, в любом порядке',one:'одна цифра',num:'год цифрами',word:'словом, например «сороковом»'}[t.type];
+  h+='<label class="xa"><span>Ответ <small>('+hint+')</small></span><input type="text" data-x="'+k+'"'+(t.type==='word'?'':' inputmode="numeric"')+' autocomplete="off" autocorrect="off" spellcheck="false" value="'+esc(t.ans||'')+'"'+(done?' disabled':'')+'></label>';
+  if(!done&&(t.type==='match'||t.type==='table'))h+='<div class="heard" id="xh'+k+'">'+xHelp(t)+'</div>';
+  if(done)h+='<div class="ans"><small>Правильный ответ</small>'+esc(t.key)+(t.type==='seq'?'<span class="ex">'+t.key.split('').map(c=>esc(t.opts[+c-1])).join(' → ')+'</span>':'')+'</div>';
+  else h+='<div class="row"><button data-xs="'+k+'" class="icon">'+SPK+'Прочитать</button></div>';
+  return h+'</section>';
+}
+const xHist=()=>EXH.length?'<h3>Прошлые пробники</h3>'+EXH.slice(0,5).map(r=>'<div class="prow">'+fmtD(r.t)+': <b>'+r.sc+' из '+r.max+'</b> за '+r.min+' мин</div>').join(''):'';
+function xRender(){
+  const b=$('#xBody');
+  if(!EX){
+    b.innerHTML='<h3>Пробник ЕГЭ по истории · часть 1</h3><p>Задания в формате ЕГЭ 2027 года: №1–5, 7–10 и 12 — 10 заданий, максимум 17 первичных баллов. Задания 6 и 11 сюда не входят: для них нужен текст источника.</p><p>Время — '+XMIN+' минут, как по спецификации ФИПИ. Ответы пишите как в бланке: цифры подряд, без пробелов и запятых. Проверка — по правилам ФИПИ, с частичными баллами.</p><p>Ошибки попадут в «Мои ошибки → Из пробника».</p>'+xHist()+'<div class="row"><button id="xStart" class="pri">Начать пробник</button></div>';
+    $('#xStart').onclick=xStart;xTimer();return}
+  let h='';
+  if(EX.done)h+='<div class="xres"><div class="big">'+EX.sc+' из '+EX.max+'</div><div>первичных '+plural(EX.max,'балла','баллов','баллов')+' за '+Math.max(1,Math.round((EX.done-EX.t0)/6e4))+' мин'+(EX.timeout?' (время вышло)':'')+'</div>'+(EX.nErr?'<p>Ошибки ('+EX.nErr+' '+plural(EX.nErr,'карточка','карточки','карточек')+') добавлены в «Мои ошибки → Из пробника».</p>':'<p>Ошибок нет!</p>')+'<div class="row">'+(EX.nErr?'<button id="xErr">Учить ошибки</button>':'')+'<button id="xNew" class="pri">Новый пробник</button></div></div>';
+  h+=EX.tasks.map(xTaskHTML).join('');
+  if(!EX.done){const empty=EX.tasks.filter(t=>!xClean(t)).map(t=>'№'+t.n);
+    h+='<div class="xend"><div class="row"><button id="xDone" class="pri">'+(xArm&&empty.length?'Пустые ответы: '+empty.join(', ')+'. Всё равно проверить?':'Закончить и проверить')+'</button></div></div>'}
+  else h+=xHist()+'<div class="row"><button id="xNew2" class="pri">Новый пробник</button></div>';
+  b.innerHTML=h;
+  b.querySelectorAll('[data-x]').forEach(inp=>inp.oninput=()=>{const t=EX.tasks[+inp.dataset.x];t.ans=inp.value;saveEX();const hh=$('#xh'+inp.dataset.x);if(hh)hh.textContent=xHelp(t)});
+  b.querySelectorAll('[data-xs]').forEach(x=>x.onclick=()=>say(xTaskText(EX.tasks[+x.dataset.xs])));
+  const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f};
+  on('xDone',()=>{const empty=EX.tasks.some(t=>!xClean(t));if(empty&&!xArm){xArm=true;const y=$('#exam').scrollTop;xRender();$('#exam').scrollTop=y;setTimeout(()=>{if(xArm&&EX&&!EX.done){xArm=false;const y2=$('#exam').scrollTop;xRender();$('#exam').scrollTop=y2}},6000);return}xArm=false;xFinish(false)});
+  on('xNew',xStart);on('xNew2',xStart);
+  on('xErr',()=>{xClose();goSec('m_exam')});
+  xTimer();
+}
+function xTimer(){clearInterval(xTick);const el=$('#xTimer');
+  if(!EX||EX.done){el.textContent='';el.classList.remove('low');return}
+  const upd=()=>{if(!EX||EX.done){clearInterval(xTick);return}const left=EX.t0+XMIN*6e4-Date.now();if(left<=0){xFinish(true);return}const m=Math.floor(left/6e4),s=Math.floor(left%6e4/1e3);el.textContent='⏱ '+m+':'+String(s).padStart(2,'0');el.classList.toggle('low',left<5*6e4)};
+  upd();if(!EX||EX.done)return;xTick=setInterval(upd,1000)}
+function xOpen(){stopSay();lstop();hf=false;$('#exam').hidden=false;xRender();$('#exam').scrollTop=0}
+function xClose(){$('#exam').hidden=true;stopSay();render()}
+$('#xClose').onclick=xClose;
+
+/* ---------- экран для родителя ---------- */
+const GN2={h:'история',s:'обществознание',r:'русский',m:'мои ошибки'};
+const short=s=>{s=String(s);return s.length>150?s.slice(0,147)+'…':s};
+const qa=i=>{const m=i.id.startsWith('m:')||i.how||/^[sr]_/.test(i.sec);return m?[i.val,i.key]:[i.key,i.val]};
+function pStats(){
+  const now=Date.now();
+  const grp=[['h','История'],['s','Обществознание'],['r','Русский'],['m','Мои ошибки']].map(([g,nm])=>{const its=SECS.filter(s=>GRP(s)===g&&!s.virt&&!s.ref).flatMap(s=>ITEMS[s.id]);let l=0,w=0,d=0;for(const i of its){const r=P[i.id];if(!r)continue;if(learned(r))l++;else w++;if(r.due<=now)d++}return {nm,n:its.length,l,w,d}}).filter(x=>x.n);
+  const days=[];for(let k=13;k>=0;k--){const t=new Date();t.setDate(t.getDate()-k);days.push({t,n:DAYS[dayKey(t)]||0})}
+  const wk=days.slice(7),wDays=wk.filter(x=>x.n).length,wN=wk.reduce((a,x)=>a+x.n,0);
+  const weak=SECS.filter(s=>!s.virt&&!s.ref&&s.id!=='mix').map(s=>{let reps=0,laps=0,seen=0;for(const i of ITEMS[s.id]){const r=P[i.id];if(!r)continue;seen++;reps+=r.reps||1;laps+=r.lapses||0}return {nm:s.name,g:GRP(s),seen,rate:reps?Math.min(1,laps/reps):0}}).filter(x=>x.seen>=10&&x.rate>0).sort((a,b)=>b.rate-a.rate).slice(0,5);
+  const egeS=EGE.map(([id,n,name])=>{const its=ITEMS[id];let l=0,seen=0;for(const i of its){const r=P[i.id];if(r){seen++;if(learned(r))l++}}return {name,n:its.length,l,seen}});
+  const hard=ITEMS.mix.filter(i=>P[i.id]&&(P[i.id].lapses||0)>=2&&!learned(P[i.id])).sort((a,b)=>P[b.id].lapses-P[a.id].lapses).slice(0,10);
+  return {grp,days,wDays,wN,weak,egeS,hard,sk:streak(),td:DAYS[dayKey()]||0};
+}
+const pct=(x,n)=>n?Math.round(x/n*100):0;
+function pReport(x){
+  return 'Тренажёр ЕГЭ — отчёт на '+fmtD(Date.now())+'\n'+
+  'Серия: '+x.sk+' '+plural(x.sk,'день','дня','дней')+' подряд. Сегодня ответов: '+x.td+'.\n'+
+  'За 7 дней: занимался '+x.wDays+' из 7 дней, ответов '+x.wN+'.\n'+
+  'Выучено: '+x.grp.map(g=>g.nm+' '+g.l+' из '+g.n+' ('+pct(g.l,g.n)+'%)').join('; ')+'.\n'+
+  (x.weak.length?'Слабые места: '+x.weak.map(w=>w.nm+' ('+GN2[w.g]+') — '+Math.round(w.rate*100)+'% ошибок').join('; ')+'.\n':'')+
+  (EXH.length?'Пробники: '+EXH.slice(0,5).map(r=>fmtD(r.t)+' — '+r.sc+' из '+r.max).join('; ')+'.':'Пробников ещё не было.');
+}
+function shareText(t){
+  const fall=()=>{const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('aria-label','Текст отчёта');$('#pBody').appendChild(ta);ta.focus();ta.select();toast('Выделите текст и скопируйте его')};
+  if(navigator.share){navigator.share({text:t}).catch(e=>{if(!e||e.name!=='AbortError')fall()});return}
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>toast('Отчёт скопирован — вставьте его в сообщение')).catch(fall);else fall();
+}
+function pRender(){
+  const x=pStats(),wd=['вс','пн','вт','ср','чт','пт','сб'],bar=(l,w,n)=>'<div class="bar"><span style="width:'+pct(l,n)+'%;background:var(--good)"></span><span style="width:'+pct(w,n)+'%;background:var(--gold)"></span></div>';
+  let h='<div class="kv"><div><span class="big">'+x.sk+'</span> '+plural(x.sk,'день','дня','дней')+' подряд</div><div>Сегодня ответов: <b>'+x.td+'</b> (цель '+S.goal+')</div><div>За последние 7 дней: занимался <b>'+x.wDays+'</b> из 7 дней, ответов <b>'+x.wN+'</b></div></div>';
+  h+='<h3>Две недели</h3><div class="days">'+x.days.map(d=>'<div class="'+(d.n>=S.goal?'full':d.n?'on':'')+'"><small>'+wd[d.t.getDay()]+'<br>'+d.t.getDate()+'</small>'+(d.n||'—')+'</div>').join('')+'</div><p class="note">Зелёная рамка — дневная цель выполнена, сплошная — занимался, пунктир — не занимался. Число — сколько ответов за день.</p>';
+  h+='<h3>Выучено</h3>'+x.grp.map(g=>'<div class="prow"><b>'+esc(g.nm)+'</b>: выучено '+g.l+' из '+g.n+' ('+pct(g.l,g.n)+'%), учит '+g.w+', пора повторить '+g.d+bar(g.l,g.w,g.n)+'</div>').join('')+'<p class="note">«Выучено» — помнит не меньше недели.</p>';
+  h+='<h3>По заданиям ЕГЭ (история)</h3>'+x.egeS.map(e=>'<div class="prow">'+esc(e.name)+': выучено <b>'+pct(e.l,e.n)+'%</b> <small class="pts">(начато '+e.seen+' из '+e.n+')</small></div>').join('');
+  h+='<h3>Слабые места</h3>'+(x.weak.length?'<p class="note">Разделы, где чаще всего ошибается (доля неверных ответов):</p>'+x.weak.map(w=>'<div class="prow">'+esc(w.nm)+' <small class="pts">('+GN2[w.g]+')</small>: <b>'+Math.round(w.rate*100)+'%</b> ошибок</div>').join(''):'<p class="note">Пока мало ответов, чтобы судить.</p>');
+  if(x.hard.length)h+='<p class="note">Самые трудные карточки:</p><ul class="hard">'+x.hard.map(i=>{const [q,a]=qa(i);return '<li><b>'+esc(short(q))+'</b> — '+esc(short(a))+' <small class="pts">(ошибок: '+P[i.id].lapses+')</small></li>'}).join('')+'</ul>';
+  h+='<h3>Пробники ЕГЭ</h3>'+(EXH.length?EXH.slice(0,8).map(r=>'<div class="prow">'+fmtD(r.t)+': <b>'+r.sc+' из '+r.max+'</b> первичных баллов за '+r.min+' мин</div>').join(''):'<p class="note">Пробников ещё не было.</p>');
+  h+='<div class="row"><button id="pShare" class="pri">Отправить отчёт</button></div><p class="note">Смотреть прогресс со своего телефона: на телефоне сына откройте Настройки → «Перенести прогресс» → «Сохранить в файл», пришлите файл себе и загрузите его у себя там же.</p>';
+  $('#pBody').innerHTML=h;
+  $('#pShare').onclick=()=>shareText(pReport(x));
+}
+function pOpen(){stopSay();lstop();hf=false;$('#sheet').hidden=true;$('#parent').hidden=false;pRender();$('#parent').scrollTop=0}
+$('#pClose').onclick=()=>{$('#parent').hidden=true;render()};
+
+/* ---------- перенос прогресса между устройствами (без сервера: файл или код) ---------- */
+const exportData=()=>({app:'ege',v:1,t:Date.now(),p:P,days:DAYS,pe:PE,exh:EXH});
+async function toCode(o){const bytes=new TextEncoder().encode(JSON.stringify(o));let out=bytes,pre='EGE0.';
+  try{if(window.CompressionStream){out=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());pre='EGE1.'}}catch(e){out=bytes;pre='EGE0.'}
+  let bin='';for(let i=0;i<out.length;i+=8192)bin+=String.fromCharCode.apply(null,out.subarray(i,i+8192));return pre+btoa(bin)}
+async function fromText(txt){txt=String(txt).trim();
+  if(txt.startsWith('{'))return JSON.parse(txt);
+  const m=txt.match(/EGE([01])\.([A-Za-z0-9+/=\s]+)/);if(!m)throw new Error('code');
+  const bin=atob(m[2].replace(/\s+/g,''));let u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  if(m[1]==='1')u=new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+  return JSON.parse(new TextDecoder().decode(u))}
+// объединение: по каждой карточке остаётся запись с более поздним ответом — ничего не теряется
+function mergeData(o){
+  if(!o||o.app!=='ege'||!o.p||typeof o.p!=='object')throw new Error('format');
+  // копию берём только если нет незакрытой «Вернуть»: второй импорт подряд не затирает состояние до первого
+  if($('#undoRow').hidden)store.set('ege_bak',{p:P,days:DAYS,pe:PE,exh:EXH,t:Date.now()});
+  let add=0,upd=0;
+  for(const id in o.p){const src=o.p[id];if(!src||typeof src!=='object')continue;const r=migrate(Object.assign({},src));if(typeof r.s!=='number'||!isFinite(r.s))continue;const m=P[id];
+    if(!m){P[id]=r;add++}else if((r.last||0)>(m.last||0)||((r.last||0)===(m.last||0)&&(r.reps||0)>(m.reps||0))){P[id]=r;upd++}}
+  for(const k in (o.days||{}))DAYS[k]=Math.max(DAYS[k]||0,+o.days[k]||0);
+  for(const id of (Array.isArray(o.pe)?o.pe:[]))if(typeof id==='string'&&!PE.includes(id))PE.push(id);
+  const ts=new Set(EXH.map(r=>r.t));for(const r of (Array.isArray(o.exh)?o.exh:[]))if(r&&!ts.has(r.t))EXH.push(r);EXH.sort((a,b)=>b.t-a.t);
+  saveP();store.set('ege_days',DAYS);store.set('ege_pe',PE);store.set('ege_exh',EXH);buildVirt();
+  return {add,upd};
+}
+async function doImport(txt){
+  try{const r=mergeData(await fromText(txt));$('#undoRow').hidden=false;$('#tCode').hidden=true;$('#codeRow').hidden=true;renderChips();renderStats();
+    toast('Прогресс объединён: новых карточек '+r.add+', обновлено '+r.upd+'. Если что-то не так — «Вернуть как было».',7000)}
+  catch(e){toast('Не получилось прочитать. Нужен файл или код из этого тренажёра.',6000)}
+}
+$('#bExport').onclick=async()=>{const s=JSON.stringify(exportData()),name='ege-progress-'+new Date().toISOString().slice(0,10)+'.json';
+  try{const f=new File([s],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Прогресс тренажёра ЕГЭ'});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Файл сохранён: '+name)};
+$('#bImportF').onclick=()=>$('#fImp').click();
+$('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>doImport(rd.result);rd.readAsText(f);e.target.value=''};
+$('#bCode').onclick=async()=>{const ta=$('#tCode');ta.value=await toCode(exportData());ta.hidden=false;$('#codeRow').hidden=false;$('#bCodeLoad').hidden=true;$('#bCodeCopy').hidden=false;ta.focus();ta.select()};
+$('#bImportC').onclick=()=>{const ta=$('#tCode');ta.value='';ta.placeholder='Вставьте сюда код с другого устройства';ta.hidden=false;$('#codeRow').hidden=false;$('#bCodeLoad').hidden=false;$('#bCodeCopy').hidden=true;ta.focus()};
+$('#bCodeCopy').onclick=()=>{const t=$('#tCode').value;if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>toast('Код скопирован — отправьте его себе на другое устройство')).catch(()=>{$('#tCode').select();toast('Выделите код и скопируйте')});else{$('#tCode').select();toast('Выделите код и скопируйте')}};
+$('#bCodeLoad').onclick=()=>{const t=$('#tCode').value.trim();if(t)doImport(t);else toast('Сначала вставьте код')};
+$('#bUndoImp').onclick=()=>{const b=store.get('ege_bak',null);if(!b)return;P=b.p;DAYS=b.days;PE=b.pe;EXH=b.exh;saveP();store.set('ege_days',DAYS);store.set('ege_pe',PE);store.set('ege_exh',EXH);store.set('ege_bak',null);buildVirt();$('#undoRow').hidden=true;renderChips();renderStats();toast('Вернул прогресс, как был до загрузки')};
+$('#bParent2').onclick=pOpen;
 
 /* ---------- настройки ---------- */
 function seg(id,list,key,after){
@@ -809,6 +1151,8 @@ function renderSettings(){
   $('#optAuto').checked=S.auto;$('#optUnmute').checked=S.unmute!==false;
   $('#srNote').textContent=SR?(IOS?'На iPhone и iPad ответы голосом работают в Safari при включённой Siri. С иконки на экране «Домой» микрофон не работает — открывайте тренажёр в Safari.':'Ответы голосом работают. Браузер спросит разрешение на микрофон при первом ответе.'):srHelp('nosr');
   $('#micTest').innerHTML=MIC+'Проверить микрофон';
+  $('#bReset').disabled=!!sec().virt;
+  if(sec().virt){$('#bReset').textContent='Сброс прогресса — в обычных разделах (здесь подборка из них)';return}
   $('#bReset').textContent=resetArm?'Точно стереть прогресс раздела «'+sec().name+'»?':'Сбросить прогресс раздела «'+sec().name+'»';
 }
 $('#optAuto').onchange=e=>{S.auto=e.target.checked;saveS()};
@@ -819,11 +1163,11 @@ $('#micTest').onclick=()=>{
   const out=$('#micRes');out.textContent='Скажите: «проверка связи»';
   say('Скажите: проверка связи',()=>listen((a,err)=>{out.textContent=a?'Работает. Услышал: «'+a[0]+'»':'Не получилось. '+(srHelp(err)||'Попробуйте ещё раз.')}));
 };
-$('#bReset').onclick=()=>{if(!resetArm){resetArm=true;renderSettings();setTimeout(()=>{resetArm=false;if(!$('#sheet').hidden)renderSettings()},5000);return}resetArm=false;for(const i of ITEMS[S.sec])delete P[i.id];saveP();renderSettings();toast('Прогресс раздела сброшен')};
+$('#bReset').onclick=()=>{if(sec().virt)return;if(!resetArm){resetArm=true;renderSettings();setTimeout(()=>{resetArm=false;if(!$('#sheet').hidden)renderSettings()},5000);return}resetArm=false;for(const i of ITEMS[S.sec])delete P[i.id];saveP();renderSettings();toast('Прогресс раздела сброшен')};
 
 /* ---------- клавиатура ---------- */
 document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT'||!$('#sheet').hidden)return;
+  if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)||document.querySelector('.sheet:not([hidden])'))return;
   if(S.mode==='cards'&&cur){
     if((e.key===' '||e.key==='Enter')&&!revealed){e.preventDefault();reveal()}
     else if(revealed&&(e.key===' '||e.key==='Enter')){e.preventDefault();grade(3);next()}
@@ -834,6 +1178,7 @@ document.addEventListener('keydown',e=>{
 });
 
 applyLook();
+if(EX&&!EX.done)xTimer();
 if(S.mode==='chrono'||S.mode==='match')next();else{cur=pick();render()}
 fetch('rus.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(!d)return;const fresh=JSON.stringify(d)!==JSON.stringify(store.get('ege_rus',null));store.set('ege_rus',d);loadSoc(d,'r');if(fresh&&GRP(sec())==='r')next();else renderChips()}).catch(()=>{});
 fetch('soc.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(!d)return;const fresh=JSON.stringify(d)!==JSON.stringify(store.get('ege_soc',null));store.set('ege_soc',d);loadSoc(d);if(fresh&&GRP(sec())==='s')next();else renderChips()}).catch(()=>{});
